@@ -1,0 +1,11 @@
+BasedOnStyle: Google
+IndentWidth: 4
+ColumnLimit: 100
+UseTab: Never
+SpacesInParentheses: false
+SpaceAfterCStyleCast: true
+PointerAlignment: Left
+AllowShortIfStatementsOnASingleLine: false
+SortIncludes: true
+IncludeBlocks: Regroup
+BreakBeforeBraces: Attach

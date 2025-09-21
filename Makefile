@@ -6,8 +6,9 @@ MAKE_CMD := $(MAKE)
 .PHONY: all clean
 
 all:
+	make clean
 	@mkdir -p $(BUILD_DIR)
-	cd $(BUILD_DIR) && $(CMAKE) ../otus_hws/hw1
+	cd $(BUILD_DIR) && CC=clang CXX=clang++ $(CMAKE) ../otus_hws/hw2
 	$(MAKE_CMD) -C $(BUILD_DIR)
 
 clean:
