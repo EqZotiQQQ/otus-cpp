@@ -3,7 +3,7 @@ BUILD_DIR := build
 CMAKE := cmake
 MAKE_CMD := $(MAKE)
 
-.PHONY: all clean
+.PHONY: all clean run
 
 all:
 	make clean
@@ -14,3 +14,8 @@ all:
 clean:
 	@echo "Cleaning build directory..."
 	rm -rf $(BUILD_DIR)
+
+run:
+	$(BUILD_DIR)/bin/ip_filter $(BUILD_DIR)/assets/ip_filter.tsv
+run_test:
+	$(BUILD_DIR)/bin/ip_filter $(BUILD_DIR)/assets/ip_filter_sample.tsv

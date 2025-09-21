@@ -12,6 +12,18 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
+# Все файлы из assets
+file(GLOB ASSET_FILES "${CMAKE_CURRENT_SOURCE_DIR}/assets/*")
+
+# Добавляем custom command для копирования
+add_custom_target(copy_assets ALL
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_CURRENT_BINARY_DIR}/assets"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            ${ASSET_FILES} "${CMAKE_CURRENT_BINARY_DIR}/assets/"
+    COMMENT "Copying assets to build directory"
+)
+
+
 add_executable(ip_filter src/ip_filter.cpp)
 
 set_target_properties(ip_filter PROPERTIES
