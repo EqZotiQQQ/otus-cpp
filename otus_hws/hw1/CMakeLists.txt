@@ -7,10 +7,9 @@ project(helloworld VERSION ${PROJECT_VERSION})
 
 option(WITH_BOOST_TEST "Whether to build Boost test" ON)
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)   # бинарники
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)   # статические библиотеки
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)   # динамические библиотеки
-
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
 set(GENERATED_DIR ${CMAKE_CURRENT_BINARY_DIR}/generated)
 file(MAKE_DIRECTORY ${GENERATED_DIR})
@@ -25,10 +24,17 @@ set_target_properties(helloworld_cli helloworld PROPERTIES
     CXX_STANDARD_REQUIRED ON
 )
 
-target_include_directories(helloworld PRIVATE "${CMAKE_BINARY_DIR}" ${GENERATED_DIR} "${CMAKE_CURRENT_SOURCE_DIR}/include")
+target_include_directories(helloworld PRIVATE 
+    "${CMAKE_BINARY_DIR}" 
+    ${GENERATED_DIR} 
+    "${CMAKE_CURRENT_SOURCE_DIR}/include"
+)
 target_link_libraries(helloworld_cli PRIVATE helloworld)
 
-target_include_directories(helloworld_cli PRIVATE ${GENERATED_DIR} "${CMAKE_CURRENT_SOURCE_DIR}/include")
+target_include_directories(helloworld_cli PRIVATE 
+    ${GENERATED_DIR} 
+    "${CMAKE_CURRENT_SOURCE_DIR}/include"
+)
 
 target_compile_options(helloworld_cli PRIVATE
     -Wall -Wextra -pedantic -Werror
@@ -37,37 +43,32 @@ target_compile_options(helloworld PRIVATE
     -Wall -Wextra -pedantic -Werror
 )
 
-# if(WITH_BOOST_TEST)
-#     find_package(Boost COMPONENTS unit_test_framework REQUIRED)
+if(WITH_BOOST_TEST)
+    find_package(Boost COMPONENTS unit_test_framework REQUIRED)
 
-#     add_executable(test_version tests/test_version.cpp)
+    add_executable(test_version tests/test_version.cpp)
 
-#     target_include_directories(
-#         test_version
-#         PRIVATE
-#             ${CMAKE_CURRENT_SOURCE_DIR}/include
-#             ${GENERATED_DIR}
-#         )
+    target_include_directories(
+        test_version
+        PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/include"  # Абсолютный путь
+            ${GENERATED_DIR}
+    )
 
-#     set_target_properties(test_version PROPERTIES
-#         CXX_STANDARD 23
-#         CXX_STANDARD_REQUIRED ON
-#     )
+    set_target_properties(test_version PROPERTIES
+        CXX_STANDARD 23
+        CXX_STANDARD_REQUIRED ON
+    )
 
-#     set_target_properties(test_version PROPERTIES
-#         COMPILE_DEFINITIONS BOOST_TEST_DYN_LINK
-#         INCLUDE_DIRECTORIES ${Boost_INCLUDE_DIR}
-#     )
+    target_link_libraries(test_version
+        ${Boost_LIBRARIES}
+        helloworld
+    )
 
-#     target_link_libraries(test_version
-#         ${Boost_LIBRARIES}
-#         helloworld
-#     )
-
-#     target_compile_options(test_version PRIVATE
-#         -Wall -Wextra -pedantic -Werror
-#     )
-# endif()
+    target_compile_options(test_version PRIVATE
+        -Wall -Wextra -pedantic -Werror
+    )
+endif()
 
 install(TARGETS helloworld_cli RUNTIME DESTINATION bin)
 
