@@ -48,12 +48,10 @@ struct Ip {
         collapsed_ip_ = (static_cast<uint32_t>(ip_[3])) | (static_cast<uint32_t>(ip_[2]) << 8) |
                         (static_cast<uint32_t>(ip_[1]) << 16) |
                         (static_cast<uint32_t>(ip_[0]) << 24);
-
-        std::cout << std::format("{}: {}", collapsed_ip_, ip_) << std::endl;
     }
 
     std::string str() const noexcept {
-        return std::format("{}: {}.{}.{}.{}", collapsed_ip_, ip_[0], ip_[1], ip_[2], ip_[3]);
+        return std::format("{}.{}.{}.{}", ip_[0], ip_[1], ip_[2], ip_[3]);
     }
 
     bool operator>(const Ip &ip) const noexcept {
@@ -118,21 +116,38 @@ int main(int argc, char **argv) {
         for (std::string line; std::getline(file, line);) {
             std::vector<std::string> v = split(line, '\t');
             ip_pool.emplace_back(Ip{v[0]});
-            // std::cout << std::format("{}", Ip{v[0]}.str()) << std::endl;
         }
 
         // TODO reverse lexicographically sort
 
-        std::cout << "\n\n\n\n";
-        std::for_each(ip_pool.cbegin(), ip_pool.cend(),
-                      [](const Ip &ip) { std::cout << ip.str() << std::endl; });
+        // std::cout << "\n\n\n\n";
+        // std::for_each(ip_pool.cbegin(), ip_pool.cend(),
+        //               [](const Ip &ip) { std::cout << ip.str() << std::endl; });
 
-        std::cout << "\n\n\n\n";
+        // std::cout << "\n\n\n\n";
         std::sort(ip_pool.begin(), ip_pool.end(),
-                  [](const Ip &ip1, const Ip &ip2) { return ip1 < ip2; });
+                  [](const Ip &ip1, const Ip &ip2) { return ip1 > ip2; });
 
         std::for_each(ip_pool.cbegin(), ip_pool.cend(),
                       [](const Ip &ip) { std::cout << ip.str() << std::endl; });
+
+        std::for_each(ip_pool.cbegin(), ip_pool.cend(), [](const Ip &ip) {
+            if (ip.ip_[0] == 1) {
+                std::cout << ip.str() << std::endl;
+            }
+        });
+
+        std::for_each(ip_pool.cbegin(), ip_pool.cend(), [](const Ip &ip) {
+            if ((ip.ip_[0] == 46) && (ip.ip_[0] == 70)) {
+                std::cout << ip.str() << std::endl;
+            }
+        });
+
+        std::for_each(ip_pool.cbegin(), ip_pool.cend(), [](const Ip &ip) {
+            if ((ip.ip_[0] == 46) || (ip.ip_[1] == 46) || (ip.ip_[2] == 46) || (ip.ip_[3] == 46)) {
+                std::cout << ip.str() << std::endl;
+            }
+        });
 
         // for (std::vector<Ip>::const_iterator ip = ip_pool.cbegin();
         //      ip != ip_pool.cend(); ++ip) {
