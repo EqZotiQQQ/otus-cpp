@@ -7,9 +7,9 @@ project(helloworld VERSION ${PROJECT_VERSION})
 
 option(WITH_BOOST_TEST "Whether to build Boost test" ON)
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 set(GENERATED_DIR ${CMAKE_CURRENT_BINARY_DIR}/generated)
 file(MAKE_DIRECTORY ${GENERATED_DIR})
@@ -18,11 +18,6 @@ configure_file(config/version.h.in ${GENERATED_DIR}/version.h)
 add_executable(helloworld_cli src/main.cpp)
 
 add_library(helloworld src/lib.cpp)
-
-set_target_properties(helloworld_cli helloworld PROPERTIES
-    CXX_STANDARD 23
-    CXX_STANDARD_REQUIRED ON
-)
 
 target_include_directories(helloworld PRIVATE 
     "${CMAKE_BINARY_DIR}" 
@@ -53,11 +48,6 @@ if(WITH_BOOST_TEST)
         PRIVATE
             "${CMAKE_CURRENT_SOURCE_DIR}/include"  # Абсолютный путь
             ${GENERATED_DIR}
-    )
-
-    set_target_properties(test_version PROPERTIES
-        CXX_STANDARD 23
-        CXX_STANDARD_REQUIRED ON
     )
 
     target_link_libraries(test_version

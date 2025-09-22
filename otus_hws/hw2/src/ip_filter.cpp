@@ -1,16 +1,24 @@
 #include <array>
 #include <cassert>
-#include <cstdlib>
+#if __cplusplus >= 202302L
 #include <format>
-#include <fstream>
+#else
+#include <cstdlib>
 #include <iomanip>
+#include <sstream>
+#include <utility>
+#endif
+#include <algorithm>
+#include <cstdint>
+#include <fstream>
 #include <iostream>
 #include <stdexcept>
 #include <string>
-#include <utility>
 #include <vector>
 
-std::vector<std::string> split(const std::string &str, char d) {
+#include "ip_filter.hpp"
+
+std::vector<std::string> split(const std::string& str, char d) {
     std::vector<std::string> r;
 
     std::string::size_type start = 0;
@@ -27,119 +35,113 @@ std::vector<std::string> split(const std::string &str, char d) {
     return r;
 }
 
-struct Ip {
-    std::array<uint8_t, 4> ip_;
-    std::uint32_t collapsed_ip_;
+void lexicographically_sort(std::vector<Ip>& ip_pool) {
+    std::sort(ip_pool.begin(), ip_pool.end(),
+              [](const Ip& ip1, const Ip& ip2) { return ip1 > ip2; });
+}
 
-    Ip(const std::string &ip) {
-        std::vector<std::string> v = split(ip, '.');
-        if (v.size() != 4) {
-            throw std::runtime_error(std::format("Bad IP: {}", ip));
-        }
-        for (int i = 0; i < 4; i++) {
-            ip_[i] = static_cast<uint8_t>(std::stoi(v[i]));
-        }
+std::vector<Ip> read_from_cmd() {
+    std::vector<Ip> ip_pool;
 
-        collapsed_ip_ = (static_cast<uint32_t>(ip_[3])) | (static_cast<uint32_t>(ip_[2]) << 8) |
-                        (static_cast<uint32_t>(ip_[1]) << 16) |
-                        (static_cast<uint32_t>(ip_[0]) << 24);
+    for (std::string line; std::getline(std::cin, line);) {
+        std::vector<std::string> v = split(line, '\t');
+        ip_pool.emplace_back(Ip{v[0]});
     }
 
-    std::string str() const noexcept {
-        return std::format("{}.{}.{}.{}", ip_[0], ip_[1], ip_[2], ip_[3]);
+    return ip_pool;
+}
+
+std::vector<Ip> read_from_file(const std::string& file_path) {
+    std::ifstream file(file_path);
+
+    if (!file.is_open()) {
+#if __cplusplus >= 202302L
+        throw std::runtime_error(std::format("File {} not found!", file_path));
+#else
+        throw std::runtime_error("File {} not found!" + file_path);
+#endif
     }
 
-    bool operator>(const Ip &ip) const noexcept {
-        return collapsed_ip_ > ip.collapsed_ip_;
+    std::vector<Ip> ip_pool;
+
+    for (std::string line; std::getline(file, line);) {
+        std::vector<std::string> v = split(line, '\t');
+        ip_pool.emplace_back(Ip{v[0]});
     }
 
-    bool operator<(const Ip &ip) const noexcept {
-        return collapsed_ip_ < ip.collapsed_ip_;
+    return ip_pool;
+}
+
+Ip::Ip(const std::string& ip) {
+    std::vector<std::string> v = split(ip, '.');
+    if (v.size() != 4) {
+#if __cplusplus >= 202302L
+        throw std::runtime_error(std::format("Bad string format: {}", ip));
+#else
+        throw std::runtime_error("Bad IP: " + ip);
+#endif
+    }
+    for (int i = 0; i < 4; i++) {
+        ip_[i] = static_cast<uint8_t>(std::stoi(v[i]));
     }
 
-    bool operator==(const Ip &ip) const noexcept {
-        return collapsed_ip_ == ip.collapsed_ip_;
+    collapsed_ip_ = (static_cast<uint32_t>(ip_[3])) | (static_cast<uint32_t>(ip_[2]) << 8) |
+                    (static_cast<uint32_t>(ip_[1]) << 16) | (static_cast<uint32_t>(ip_[0]) << 24);
+}
+
+Ip::Ip(const Ip& ip) {
+    if (this == &ip) {
+        return;
+    }
+    for (uint8_t i = 0; i < 4; i++) {
+        ip_[i] = ip.ip_[i];
     }
 
-    Ip(const Ip &ip) {
-        if (this == &ip) {
-            return;
-        }
-        for (uint8_t i = 0; i < 4; i++) {
-            ip_[i] = ip.ip_[i];
-        }
+    collapsed_ip_ = ip.collapsed_ip_;
+}
 
-        collapsed_ip_ = ip.collapsed_ip_;
-    }
-
-    Ip &operator=(const Ip &ip) {
-        if (this == &ip) {
-            return *this;
-        }
-
-        for (uint8_t i = 0; i < 4; i++) {
-            ip_[i] = ip.ip_[i];
-        }
-
-        collapsed_ip_ = ip.collapsed_ip_;
-
+Ip& Ip::operator=(const Ip& ip) {
+    if (this == &ip) {
         return *this;
     }
-};
 
-template <>
-struct std::formatter<Ip> : std::formatter<std::string> {
-    auto format(const Ip &ip, auto &ctx) {
-        return std::formatter<std::string>::format(ip.str(), ctx);
-    }
-};
-
-int main(int argc, char **argv) {
-    if (argc != 2) {
-        throw std::runtime_error("I expect csv with ips at second argument...");
+    for (uint8_t i = 0; i < 4; i++) {
+        ip_[i] = ip.ip_[i];
     }
 
-    try {
-        std::ifstream file(argv[1]);
+    collapsed_ip_ = ip.collapsed_ip_;
 
-        if (!file.is_open()) {
-            throw std::runtime_error(std::format("File {} not found!", argv[1]));
-        }
+    return *this;
+}
 
-        std::vector<Ip> ip_pool;
+bool Ip::operator>(const Ip& ip) const noexcept {
+    return collapsed_ip_ > ip.collapsed_ip_;
+}
 
-        for (std::string line; std::getline(file, line);) {
-            std::vector<std::string> v = split(line, '\t');
-            ip_pool.emplace_back(Ip{v[0]});
-        }
+bool Ip::operator<(const Ip& ip) const noexcept {
+    return collapsed_ip_ < ip.collapsed_ip_;
+}
 
-        std::sort(ip_pool.begin(), ip_pool.end(),
-                  [](const Ip &ip1, const Ip &ip2) { return ip1 > ip2; });
+bool Ip::operator==(const Ip& ip) const noexcept {
+    return collapsed_ip_ == ip.collapsed_ip_;
+}
 
-        std::for_each(ip_pool.cbegin(), ip_pool.cend(),
-                      [](const Ip &ip) { std::cout << ip.str() << std::endl; });
+bool Ip::operator!=(const Ip& ip) const noexcept {
+    return !(collapsed_ip_ == ip.collapsed_ip_);
+}
 
-        std::for_each(ip_pool.cbegin(), ip_pool.cend(), [](const Ip &ip) {
-            if (ip.ip_[0] == 1) {
-                std::cout << ip.str() << std::endl;
-            }
-        });
+std::string Ip::str() const noexcept {
+#if __cplusplus >= 202302L
+    return std::format("{}.{}.{}.{}", ip_[0], ip_[1], ip_[2], ip_[3]);
+#else
+    std::ostringstream ostream;
+    ostream << static_cast<uint32_t>(ip_[0]) << '.' << static_cast<uint32_t>(ip_[1]) << '.'
+            << static_cast<uint32_t>(ip_[2]) << '.' << static_cast<uint32_t>(ip_[3]);
+    return ostream.str();
+#endif
+}
 
-        std::for_each(ip_pool.cbegin(), ip_pool.cend(), [](const Ip &ip) {
-            if ((ip.ip_[0] == 46) && (ip.ip_[1] == 70)) {
-                std::cout << ip.str() << std::endl;
-            }
-        });
-
-        std::for_each(ip_pool.cbegin(), ip_pool.cend(), [](const Ip &ip) {
-            if ((ip.ip_[0] == 46) || (ip.ip_[1] == 46) || (ip.ip_[2] == 46) || (ip.ip_[3] == 46)) {
-                std::cout << ip.str() << std::endl;
-            }
-        });
-
-    } catch (const std::exception &e) {
-        std::cerr << e.what() << std::endl;
-    }
-
-    return 0;
+std::ostream& operator<<(std::ostream& os, const Ip& ip) {
+    os << ip.str();
+    return os;
 }

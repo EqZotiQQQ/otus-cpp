@@ -10,3 +10,4 @@ SortIncludes: true
 IncludeBlocks: Regroup
 BreakBeforeBraces: Attach
 AllowShortFunctionsOnASingleLine: None
+DerivePointerAlignment: false
