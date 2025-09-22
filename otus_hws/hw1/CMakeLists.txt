@@ -39,6 +39,7 @@ target_compile_options(helloworld PRIVATE
 )
 
 if(WITH_BOOST_TEST)
+    enable_testing()
     find_package(Boost COMPONENTS unit_test_framework REQUIRED)
 
     add_executable(test_version tests/test_version.cpp)
@@ -46,7 +47,7 @@ if(WITH_BOOST_TEST)
     target_include_directories(
         test_version
         PRIVATE
-            "${CMAKE_CURRENT_SOURCE_DIR}/include"  # Абсолютный путь
+            "${CMAKE_CURRENT_SOURCE_DIR}/include"
             ${GENERATED_DIR}
     )
 
@@ -58,6 +59,7 @@ if(WITH_BOOST_TEST)
     target_compile_options(test_version PRIVATE
         -Wall -Wextra -pedantic -Werror
     )
+    add_test(test_version test_version)
 endif()
 
 install(TARGETS helloworld_cli RUNTIME DESTINATION bin)
@@ -68,8 +70,3 @@ set(CPACK_PACKAGE_VERSION_MINOR "${PROJECT_VERSION_MINOR}")
 set(CPACK_PACKAGE_VERSION_PATCH "${PROJECT_VERSION_PATCH}")
 set(CPACK_PACKAGE_CONTACT example@example.com)
 include(CPack)
-
-if(WITH_BOOST_TEST)
-    enable_testing()
-    add_test(test_version test_version)
-endif()
