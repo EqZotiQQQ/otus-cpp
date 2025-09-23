@@ -40,26 +40,27 @@ target_compile_options(helloworld PRIVATE
 
 if(WITH_BOOST_TEST)
     enable_testing()
-    find_package(Boost COMPONENTS unit_test_framework REQUIRED)
+    find_package(Boost 1.70 REQUIRED CONFIG COMPONENTS unit_test_framework)
 
-    add_executable(test tests/test_version.cpp)
+    add_executable(test_hw1 tests/test_version.cpp)
 
     target_include_directories(
-        test
+        test_hw1
         PRIVATE
             "${CMAKE_CURRENT_SOURCE_DIR}/include"
             ${GENERATED_DIR}
     )
 
-    target_link_libraries(test
-        ${Boost_LIBRARIES}
-        helloworld
-    )
+    target_link_libraries(test_hw1 PRIVATE Boost::unit_test_framework helloworld)
 
-    target_compile_options(test PRIVATE
+    target_compile_options(test_hw1 PRIVATE
         -Wall -Wextra -pedantic -Werror
     )
-    add_test(test test)
+    
+    add_test(
+        NAME test
+        COMMAND $<TARGET_FILE:test_hw1>
+    )
 endif()
 
 install(TARGETS helloworld_cli RUNTIME DESTINATION bin)
@@ -69,4 +70,5 @@ set(CPACK_PACKAGE_VERSION_MAJOR "${PROJECT_VERSION_MAJOR}")
 set(CPACK_PACKAGE_VERSION_MINOR "${PROJECT_VERSION_MINOR}")
 set(CPACK_PACKAGE_VERSION_PATCH "${PROJECT_VERSION_PATCH}")
 set(CPACK_PACKAGE_CONTACT example@example.com)
+
 include(CPack)

@@ -4,7 +4,7 @@
 
 #include "ip_filter.hpp"
 
-BOOST_AUTO_TEST_SUITE(test_version)
+BOOST_AUTO_TEST_SUITE(test_ips)
 
 BOOST_AUTO_TEST_CASE(mo) {
     Ip ip_less("44.33.11.22");
