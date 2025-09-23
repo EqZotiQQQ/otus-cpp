@@ -58,7 +58,7 @@ std::vector<Ip> read_from_file(const std::string& file_path) {
 #if __cplusplus >= 202302L
         throw std::runtime_error(std::format("File {} not found!", file_path));
 #else
-        throw std::runtime_error("File {} not found!" + file_path);
+        throw std::runtime_error("File " + file_path + " not found!");
 #endif
     }
 

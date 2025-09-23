@@ -42,24 +42,24 @@ if(WITH_BOOST_TEST)
     enable_testing()
     find_package(Boost COMPONENTS unit_test_framework REQUIRED)
 
-    add_executable(test_version tests/test_version.cpp)
+    add_executable(test tests/test_version.cpp)
 
     target_include_directories(
-        test_version
+        test
         PRIVATE
             "${CMAKE_CURRENT_SOURCE_DIR}/include"
             ${GENERATED_DIR}
     )
 
-    target_link_libraries(test_version
+    target_link_libraries(test
         ${Boost_LIBRARIES}
         helloworld
     )
 
-    target_compile_options(test_version PRIVATE
+    target_compile_options(test PRIVATE
         -Wall -Wextra -pedantic -Werror
     )
-    add_test(test_version test_version)
+    add_test(test test)
 endif()
 
 install(TARGETS helloworld_cli RUNTIME DESTINATION bin)

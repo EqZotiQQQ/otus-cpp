@@ -43,7 +43,8 @@ target_compile_options(ip_filter PRIVATE
 
 if(WITH_BOOST_TEST)
     enable_testing()
-    find_package(Boost COMPONENTS unit_test_framework REQUIRED)
+
+    find_package(Boost 1.70 REQUIRED CONFIG COMPONENTS unit_test_framework)
 
     add_executable(test_filter tests/test_filter.cpp)
 
@@ -53,16 +54,13 @@ if(WITH_BOOST_TEST)
             "${CMAKE_CURRENT_SOURCE_DIR}/include"
     )
 
-    target_link_libraries(test_filter
-        ${Boost_LIBRARIES}
-        ip_filter_lib
-    )
+    target_link_libraries(test_filter PRIVATE Boost::unit_test_framework ip_filter_lib)
 
     target_compile_options(test_filter PRIVATE
         -Wall -Wextra -pedantic -Werror
     )
 
-    add_test(test_filter test_filter)
+    add_test(test test_filter)
 endif()
 
 install(TARGETS ip_filter RUNTIME DESTINATION bin)
@@ -72,4 +70,5 @@ set(CPACK_PACKAGE_VERSION_MAJOR "${PROJECT_VERSION_MAJOR}")
 set(CPACK_PACKAGE_VERSION_MINOR "${PROJECT_VERSION_MINOR}")
 set(CPACK_PACKAGE_VERSION_PATCH "${PROJECT_VERSION_PATCH}")
 set(CPACK_PACKAGE_CONTACT example@example.com)
+
 include(CPack)
