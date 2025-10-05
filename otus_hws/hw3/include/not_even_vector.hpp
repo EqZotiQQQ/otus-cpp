@@ -241,7 +241,7 @@ public:
         return capacity_;
     }
 
-    const ptr data() const noexcept {
+    cptr data() const noexcept {
         return data_;
     }
 
