@@ -28,6 +28,97 @@ public:
     using ref = V&;
     using cref = const V&;
 
+    template <bool IsConst>
+    class AnotherVectorIter {
+    public:
+        using diff_type = std::ptrdiff_t;
+        using value_type = V;
+        using pointer = std::conditional_t<IsConst, const V*, V*>;
+        using reference = std::conditional_t<IsConst, const V&, V&>;
+        using iterator_category =
+            std::random_access_iterator_tag;  // used in sort, advance, distance by std algorithms
+
+        AnotherVectorIter() {
+        }
+        explicit AnotherVectorIter(ptr p) : ptr_(p) {
+        }
+
+        template <bool B = IsConst, typename = std::enable_if_t<B>>
+        explicit AnotherVectorIter(const AnotherVectorIter<false>& other) : ptr_(other.ptr_) {
+        }
+
+        reference operator*() const {
+            return *ptr_;
+        }
+        pointer operator&() const {
+            return ptr_;
+        }
+
+        AnotherVectorIter& operator++() {
+            ++ptr_;
+            return *this;
+        }
+
+        AnotherVectorIter& operator--() {
+            --ptr_;
+            return *this;
+        }
+
+        AnotherVectorIter operator++(int) {
+            auto obj_ref = *this;
+            ++(*this);
+            return obj_ref;
+        }
+
+        AnotherVectorIter operator--(int) {
+            auto obj_ref = *this;
+            --(*this);
+            return obj_ref;
+        }
+
+        AnotherVectorIter& operator+(size_t n) const {
+            return AnotherVectorIter(ptr_ + n);
+        }
+
+        AnotherVectorIter& operator-(size_t n) const {
+            return AnotherVectorIter(ptr_ - n);
+        }
+
+        pointer operator[](size_t n) {
+            return *(ptr_ + n);
+        }
+
+        diff_type operator-(const AnotherVectorIter& other) const {
+            return ptr_ - other.ptr_;
+        }
+
+        bool operator==(const AnotherVectorIter& other) const {
+            return ptr_ == other.ptr_;
+        }
+        bool operator!=(const AnotherVectorIter& other) const {
+            return ptr_ != other.ptr_;
+        }
+        bool operator<(const AnotherVectorIter& other) const {
+            return ptr_ < other.ptr_;
+        }
+        bool operator>(const AnotherVectorIter& other) const {
+            return ptr_ > other.ptr_;
+        }
+        bool operator<=(const AnotherVectorIter& other) const {
+            return ptr_ <= other.ptr_;
+        }
+        bool operator>=(const AnotherVectorIter& other) const {
+            return ptr_ >= other.ptr_;
+        }
+
+    private:
+        pointer ptr_ = nullptr;
+        friend class AnotherVectorIter<true>;
+    };
+
+    using iter = AnotherVectorIter<false>;
+    using citer = AnotherVectorIter<true>;
+
     AnotherVector() {
     }
 
@@ -86,6 +177,9 @@ public:
     void push_back(const value_type& new_obj) {
         if (size_ == capacity_) {
             auto new_cap = get_next_alloc_blob_size();
+            if (new_cap == 0) {
+                new_cap = 1;
+            }
             realloc(new_cap);
         }
         // if alloc has construct method - he s gonna be invoked otherwice placement new
@@ -96,6 +190,9 @@ public:
     void push_back(value_type&& new_obj) {
         if (size_ == capacity_) {
             auto new_cap = get_next_alloc_blob_size();
+            if (new_cap == 0) {
+                new_cap = 1;
+            }
             realloc(new_cap);
         }
         // if alloc has construct method - he s gonna be invoked otherwice placement new
@@ -105,6 +202,8 @@ public:
     }
 
     void realloc(size_t new_cap) {
+        std::cout << "Realloc with new capacity: " << std::to_string(new_cap) << std::endl;
+
         ptr new_data = std::allocator_traits<allocator_type>::allocate(alloc_, new_cap);
         size_t i = 0;
         try {
@@ -132,10 +231,6 @@ public:
             std::allocator_traits<Alloc>::destroy(alloc_, std::addressof(data_[j]));
         }
         size_ = 0;
-    }
-
-    size_t get_next_alloc_blob_size() const noexcept {
-        return capacity_ * 2;
     }
 
     size_t size() const noexcept {
@@ -176,7 +271,43 @@ public:
         return data_[index];
     }
 
+    iter begin() noexcept {
+        return iter(data_);
+    }
+
+    iter end() noexcept {
+        return iter(data_ + size_);
+    }
+
+    citer begin() const noexcept {
+        return citer(data_);
+    }
+
+    citer end() const noexcept {
+        return citer(data_ + size_);
+    }
+
+    ref front() noexcept {
+        return data_[0];
+    }
+
+    ref back() noexcept {
+        return data_[size_];
+    }
+
+    cref front() const noexcept {
+        return data_[0];
+    }
+
+    cref back() const noexcept {
+        return data_[size_];
+    }
+
 private:
+    size_t get_next_alloc_blob_size() const noexcept {
+        return capacity_ * 2;
+    }
+
     Alloc alloc_{};
     size_t size_ = 0;
     size_t capacity_ = 0;

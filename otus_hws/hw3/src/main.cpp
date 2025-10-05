@@ -56,33 +56,15 @@ void custom_vec_examples() {
     v.push_back(35);
     v.push_back(62);
     v.push_back(12);
+    v.push_back(5512);
 
-    std::cout << std::format("Vector with custom alloc: {}\n", v);
+    std::cout << std::format("Vector with custom alloc: {}, {}, {}\n", v, v.size(), v.capacity());
 }
 
 int main() {
-    // vec_examples();
-    // map_hw_examples();
+    vec_examples();
+    map_hw_examples();
     custom_vec_examples();
-
-    // std::unordered_map<int, int, std::hash<int>, std::equal_to<int>,
-    //                    Alloc<std::pair<const int, int>>>
-    //     um;
-    // um.reserve(500);
-    // um.emplace(std::make_pair(42, 331));
-    // um.emplace(std::make_pair(412, 333));
-    // um.emplace(std::make_pair(425, 533));
-    // um.emplace(std::make_pair(423, 313));
-
-    // std::cout << std::format("{}\n", um);
-
-    // std::map<int, int, std::less<int>, Alloc<std::pair<const int, int>>> m;
-    // m.emplace(std::make_pair(42, 331));
-    // m.emplace(std::make_pair(412, 333));
-    // m.emplace(std::make_pair(425, 533));
-    // m.emplace(std::make_pair(423, 313));
-
-    // std::cout << std::format("{}\n", m);
 
     return 0;
 }
