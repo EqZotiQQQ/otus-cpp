@@ -50,8 +50,6 @@ if(WITH_BOOST_TEST)
     target_compile_options(test_alloc PRIVATE
         -Wall -Wextra -pedantic -Werror
     )
-    
-    target_compile_definitions(test_alloc PRIVATE BOOST_TEST_DYN_LINK)
 
     add_test(
         NAME test
