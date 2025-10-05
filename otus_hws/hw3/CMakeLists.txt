@@ -35,7 +35,7 @@ target_compile_options(alloc PRIVATE
 if(WITH_BOOST_TEST)
     enable_testing()
 
-    find_package(Boost 1.70 REQUIRED CONFIG COMPONENTS unit_test_framework)
+    find_package(Boost 1.70 REQUIRED COMPONENTS unit_test_framework)
 
     add_executable(test_alloc tests/test_alloc.cpp)
 
