@@ -25,8 +25,8 @@ public:
         }
         // if pool is full
         if (pool_offset_b + n * TYPE_SIZE > POOL_SIZE_BYTES - pool_offset_b) {
-            std::cout << std::format("Use default alloc to allocate {} bytes ({} objects)\n",
-                                     n * TYPE_SIZE, n);
+            // std::cout << std::format("Use default alloc to allocate {} bytes ({} objects)\n",
+            //                          n * TYPE_SIZE, n);
             return static_cast<T*>(std::malloc(n * TYPE_SIZE));
         }
 
@@ -35,8 +35,8 @@ public:
         T* ptr =
             static_cast<T*>(static_cast<void*>(free_segmet));  // direct cast char*->T* not allowed
 
-        std::cout << std::format("Allocated {} bytes ({} objects) at {}\n", n * TYPE_SIZE, n,
-                                 pool_offset_b);
+        // std::cout << std::format("Allocated {} bytes ({} objects) at {}\n", n * TYPE_SIZE, n,
+        //                          pool_offset_b);
 
         pool_offset_b += n * TYPE_SIZE;
 
@@ -47,11 +47,11 @@ public:
         char* chptr = reinterpret_cast<char*>(ptr);
         bool is_pool_segment = (chptr >= pool_blob) && (chptr < (pool_blob + POOL_SIZE_BYTES));
         if (is_pool_segment) {
-            std::cout << std::format("Alloc not so smart to free mem: {} bytes\n",
-                                     dealloc_bytes * sizeof(T));
+            // std::cout << std::format("Alloc not so smart to free mem: {} bytes\n",
+            //                          dealloc_bytes * sizeof(T));
         } else {
-            std::cout << std::format("Free memory not from pool: {} bytes\n",
-                                     dealloc_bytes * sizeof(T));
+            // std::cout << std::format("Free memory not from pool: {} bytes\n",
+            //                          dealloc_bytes * sizeof(T));
             std::free(ptr);
         }
     }
@@ -74,8 +74,8 @@ private:
         if (!pool_blob) {
             throw std::bad_alloc();
         }
-        std::cout << std::format("Created pool of {} bytes ({} objects)\n", pool_size,
-                                 static_cast<size_t>(pool_size / TYPE_SIZE));
+        // std::cout << std::format("Created pool of {} bytes ({} objects)\n", pool_size,
+        //                          static_cast<size_t>(pool_size / TYPE_SIZE));
         pool_offset_b = 0;
     }
 

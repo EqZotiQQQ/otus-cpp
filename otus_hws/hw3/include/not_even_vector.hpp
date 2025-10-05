@@ -202,7 +202,7 @@ public:
     }
 
     void realloc(size_t new_cap) {
-        std::cout << "Realloc with new capacity: " << std::to_string(new_cap) << std::endl;
+        // std::cout << "Realloc with new capacity: " << std::to_string(new_cap) << std::endl;
 
         ptr new_data = std::allocator_traits<allocator_type>::allocate(alloc_, new_cap);
         size_t i = 0;
