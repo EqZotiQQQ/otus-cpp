@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 4.0)
 set(PATCH_VERSION "1" CACHE INTERNAL "Patch version")
 set(PROJECT_VERSION 0.0.${PATCH_VERSION})
 
-project(helloworld VERSION ${PROJECT_VERSION})
+project(alloc VERSION ${PROJECT_VERSION})
 
 option(WITH_BOOST_TEST "Whether to build Boost test" ON)
 
@@ -11,61 +11,56 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-set(GENERATED_DIR ${CMAKE_CURRENT_BINARY_DIR}/generated)
-file(MAKE_DIRECTORY ${GENERATED_DIR})
-configure_file(config/version.h.in ${GENERATED_DIR}/version.h)
+add_executable(alloc src/main.cpp)
+add_library(ip_alloc_lib src/alloc.cpp)
+target_link_libraries(alloc PRIVATE ip_alloc_lib)
 
-add_executable(helloworld_cli src/main.cpp)
+message(STATUS "alloc will use C++ standard: ${STD}")
 
-add_library(helloworld src/lib.cpp)
-
-target_include_directories(helloworld PRIVATE 
-    "${CMAKE_BINARY_DIR}" 
-    ${GENERATED_DIR} 
-    "${CMAKE_CURRENT_SOURCE_DIR}/include"
-)
-target_link_libraries(helloworld_cli PRIVATE helloworld)
-
-target_include_directories(helloworld_cli PRIVATE 
-    ${GENERATED_DIR} 
+target_include_directories(alloc PRIVATE 
     "${CMAKE_CURRENT_SOURCE_DIR}/include"
 )
 
-target_compile_options(helloworld_cli PRIVATE
+target_include_directories(ip_alloc_lib PRIVATE 
+    "${CMAKE_CURRENT_SOURCE_DIR}/include"
+)
+
+target_compile_options(alloc PRIVATE
     -Wall -Wextra -pedantic -Werror
 )
-target_compile_options(helloworld PRIVATE
+target_compile_options(alloc PRIVATE
     -Wall -Wextra -pedantic -Werror
 )
 
 if(WITH_BOOST_TEST)
     enable_testing()
+
     find_package(Boost 1.70 REQUIRED CONFIG COMPONENTS unit_test_framework)
 
-    add_executable(test_hw1 tests/test_version.cpp)
+    add_executable(test_alloc tests/test_alloc.cpp)
 
     target_include_directories(
-        test_hw1
+        test_alloc
         PRIVATE
             "${CMAKE_CURRENT_SOURCE_DIR}/include"
-            ${GENERATED_DIR}
     )
 
-    target_link_libraries(test_hw1 PRIVATE Boost::unit_test_framework helloworld)
+    target_link_libraries(test_alloc PRIVATE Boost::unit_test_framework ip_alloc_lib)
 
-    target_compile_options(test_hw1 PRIVATE
+    target_compile_options(test_alloc PRIVATE
         -Wall -Wextra -pedantic -Werror
     )
-    
+
     add_test(
         NAME test
-        COMMAND $<TARGET_FILE:test_hw1>
+        COMMAND $<TARGET_FILE:test_alloc>
     )
 endif()
 
-install(TARGETS helloworld_cli RUNTIME DESTINATION bin)
+install(TARGETS alloc RUNTIME DESTINATION bin)
 
 set(CPACK_GENERATOR DEB)
+
 set(CPACK_PACKAGE_VERSION_MAJOR "${PROJECT_VERSION_MAJOR}")
 set(CPACK_PACKAGE_VERSION_MINOR "${PROJECT_VERSION_MINOR}")
 set(CPACK_PACKAGE_VERSION_PATCH "${PROJECT_VERSION_PATCH}")

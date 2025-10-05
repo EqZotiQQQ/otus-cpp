@@ -8,8 +8,8 @@ MAKE_CMD := $(MAKE)
 all:
 	make clean
 	@mkdir -p $(BUILD_DIR)
-	CC=clang CXX=clang++ $(CMAKE) -DPATCH_VERSION=42 -DWITH_BOOST_TEST=ON -B $(BUILD_DIR)
-	$(CMAKE) --build $(BUILD_DIR)
+	CC=clang CXX=clang++ $(CMAKE) -DPATCH_VERSION=42 -DWITH_BOOST_TEST=ON -DCMAKE_BUILD_TYPE=Debug -B $(BUILD_DIR)
+	$(CMAKE)  --build $(BUILD_DIR)
 
 clean:
 	@echo "Cleaning build directory..."
