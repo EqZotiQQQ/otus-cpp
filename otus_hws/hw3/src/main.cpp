@@ -18,33 +18,42 @@ size_t factorial(size_t value) noexcept {
 }
 
 void map_hw_examples_custom() {
-    std::cout << "Custom map alloc example:\n";
     std::map<int, int, std::less<int>, BetterAlloc<std::pair<const int, int>>>
         map_with_custom_allocator;
     for (size_t i = 0; i < 10; i++) {
         map_with_custom_allocator.emplace(std::make_pair(i, factorial(i)));
     }
-    std::cout << std::format("Map with custom alloc: {}\n", map_with_custom_allocator);
+    std::cout << std::format("Map with custom alloc:\n");
+    for (const auto& [k, v] : map_with_custom_allocator) {
+        std::cout << k << ": " << v << std::endl;
+    }
+    std::cout << std::endl;
 }
 
 void map_hw_examples_default() {
-    std::cout << "Default map example:\n";
     std::map<int, int> map_with_default_allocator;
     for (size_t i = 0; i < 10; i++) {
         map_with_default_allocator.emplace(std::make_pair(i, factorial(i)));
     }
-    std::cout << std::format("Map with default alloc: {}\n", map_with_default_allocator);
+    std::cout << std::format("Map with default alloc:\n");
+    for (const auto& [k, v] : map_with_default_allocator) {
+        std::cout << k << ": " << v << std::endl;
+    }
+    std::cout << std::endl;
 }
 
 void custom_vec_examples() {
-    std::cout << "Custom vec with custom alloc:\n";
     AnotherVector<uint32_t, BetterAlloc<uint32_t>> v;
 
     for (int i = 0; i < 10; i++) {
         v.push_back(i);
     }
 
-    std::cout << std::format("Vector with custom alloc: {}\n", v, v.size(), v.capacity());
+    std::cout << std::format("Vector with custom alloc:");
+    for (const auto& item : v) {
+        std::cout << " " << item;
+    }
+    std::cout << std::endl;
 }
 
 int main() {
