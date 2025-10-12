@@ -17,4 +17,4 @@ include(CTest)
 # add_subdirectory(otus_hws/hw3)
 add_subdirectory(otus_hws/hw4)
 
-add_subdirectory(experiments)
+# add_subdirectory(experiments)
