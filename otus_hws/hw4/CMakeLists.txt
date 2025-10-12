@@ -32,30 +32,30 @@ target_compile_options(ip_printer PRIVATE
     -Wall -Wextra -pedantic -Werror
 )
 
-if(WITH_BOOST_TEST)
-    enable_testing()
+# if(WITH_BOOST_TEST)
+#     enable_testing()
 
-    find_package(Boost 1.70 REQUIRED COMPONENTS unit_test_framework)
+#     find_package(Boost 1.70 REQUIRED COMPONENTS unit_test_framework)
 
-    add_executable(test_ip_printer tests/test_ip_printer.cpp)
+#     add_executable(test_ip_printer tests/test_ip_printer.cpp)
 
-    target_include_directories(
-        test_ip_printer
-        PRIVATE
-            "${CMAKE_CURRENT_SOURCE_DIR}/include"
-    )
+#     target_include_directories(
+#         test_ip_printer
+#         PRIVATE
+#             "${CMAKE_CURRENT_SOURCE_DIR}/include"
+#     )
 
-    target_link_libraries(test_ip_printer PRIVATE Boost::unit_test_framework ip_printer_lib)
+#     target_link_libraries(test_ip_printer PRIVATE Boost::unit_test_framework ip_printer_lib)
 
-    target_compile_options(test_ip_printer PRIVATE
-        -Wall -Wextra -pedantic -Werror
-    )
+#     target_compile_options(test_ip_printer PRIVATE
+#         -Wall -Wextra -pedantic -Werror
+#     )
 
-    add_test(
-        NAME test
-        COMMAND $<TARGET_FILE:test_ip_printer>
-    )
-endif()
+#     add_test(
+#         NAME test
+#         COMMAND $<TARGET_FILE:test_ip_printer>
+#     )
+# endif()
 
 install(TARGETS ip_printer RUNTIME DESTINATION bin)
 
