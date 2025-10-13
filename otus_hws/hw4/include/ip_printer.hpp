@@ -35,6 +35,13 @@ struct is_tuple_type : std::false_type {};
 template <typename... Ts>
 struct is_tuple_type<std::tuple<Ts...>> : std::true_type {};
 
+/**
+ * @brief prints tuple where elements are splitted by '.'
+ *
+ * @tparam Tuple
+ * @param tuple
+ * @return std::enable_if_t<is_tuple_type<Tuple>::value && is_tuple_args_has_same_type<Tuple>::value, void>
+ */
 template <typename Tuple>
 std::enable_if_t<is_tuple_type<Tuple>::value && is_tuple_args_has_same_type<Tuple>::value, void> print_ip(Tuple tuple) {
     std::apply(

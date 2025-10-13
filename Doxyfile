@@ -1,0 +1,25 @@
+# Название проекта
+PROJECT_NAME           = "OtusTasks"
+
+# Каталог, где лежит исходный код
+INPUT                  = src include experiments otus_hws problems
+
+# Разрешить рекурсивный обход папок
+RECURSIVE              = YES
+
+# Каталог для выходных файлов
+OUTPUT_DIRECTORY       = docs
+
+# Включить HTML-вывод
+GENERATE_HTML          = YES
+HTML_OUTPUT            = html
+
+# Включить диаграммы классов (если установлен Graphviz)
+HAVE_DOT               = YES
+CALL_GRAPH             = YES
+CALLER_GRAPH           = YES
+
+# Для C++: включить детектирование шаблонов и зависимостей
+EXTRACT_ALL            = YES
+EXTRACT_PRIVATE        = NO
+EXTRACT_STATIC         = NO
