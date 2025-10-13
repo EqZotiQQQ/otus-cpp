@@ -1,0 +1,15 @@
+<map id="experiments/template_template_templates.hpp" name="experiments/template_template_templates.hpp">
+<area shape="rect" id="Node000001" title=" " alt="" coords="145,5,335,45"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,93,85,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="194,48,88,91,86,86,192,43"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="109,93,152,119"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="215,48,159,87,156,83,212,43"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="176,93,227,119"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="233,47,216,82,211,80,228,44"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="251,93,309,119"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="252,44,270,80,265,82,247,47"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="334,93,458,119"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="279,43,362,85,360,89,276,48"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="482,93,545,119"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="306,43,470,89,468,95,305,48"/>
+</map>

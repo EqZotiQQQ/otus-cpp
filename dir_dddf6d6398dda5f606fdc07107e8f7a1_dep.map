@@ -1,0 +1,11 @@
+<map id="otus_hws/hw2" name="otus_hws/hw2">
+<area shape="rect" id="node2" href="dir_a06009fffb5e59c9d0499624625d15f1.html" title="include" alt="" coords="69,136,139,161"/>
+<area shape="rect" id="node3" href="dir_62645d6737d55548d02a8eb14cded801.html" title="src" alt="" coords="117,63,158,88"/>
+<area shape="poly" id="edge1" href="dir_000012_000006.html" alt="" coords="134,89,118,125,113,123,129,87"/>
+<area shape="rect" id="edge1-headlabel" href="dir_000012_000006.html" title="2" alt="" coords="120,116,129,130"/>
+<area shape="rect" id="node4" href="dir_e522dd60ae044e1bbb85da41ca1d05ee.html" title="tests" alt="" coords="38,63,93,88"/>
+<area shape="poly" id="edge2" href="dir_000016_000006.html" alt="" coords="74,87,94,123,89,125,69,90"/>
+<area shape="rect" id="edge2-headlabel" href="dir_000016_000006.html" title="1" alt="" coords="92,109,101,123"/>
+<area shape="rect" id="clust2" href="dir_dddf6d6398dda5f606fdc07107e8f7a1.html" alt="" coords="27,52,243,172"/>
+<area shape="rect" id="clust1" href="dir_5dc3641fa9336bf3baac53f9bbb3d9fb.html" title="otus_hws" alt="" coords="16,16,253,183"/>
+</map>

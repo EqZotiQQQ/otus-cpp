@@ -1,0 +1,7 @@
+<map id="run_templates" name="run_templates">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,35,121,60"/>
+<area shape="rect" id="Node000002" href="$structSimpleAdapter.html#a70150b5506f2e4fa43e1e76042a8eddb" title=" " alt="" coords="193,5,368,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="121,37,179,29,180,34,122,42"/>
+<area shape="rect" id="Node000003" href="$structAdapterWithMultipleTemplates.html#a1b462a1f4c62a6e14864824bcbf25f13" title=" " alt="" coords="169,55,392,95"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="122,52,156,57,155,62,121,57"/>
+</map>
