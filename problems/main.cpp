@@ -1,5 +1,7 @@
+#include <algorithm>
 #include <cmath>
 #include <iostream>
+#include <unordered_map>
 #include <vector>
 
 #include "hw3.hpp"
@@ -23,76 +25,114 @@ int p1820() {
 using u32 = unsigned int;
 using i32 = int;
 
-void impl(const std::vector<std::pair<u32, u32>>& base_pos) {
-    for (const auto& [x, y] : base_pos) {
-        u32 possible_steps = 2;
-        if (x >= 1 && x <= 6) {
-            possible_steps++;
-        }
-        if (y >= 1 && y <= 6) {
-            possible_steps++;
-        }
-        if (x >= 2 && x <= 5) {
-            possible_steps += 2;
-        }
-        if (y >= 2 && y <= 5) {
-            possible_steps += 2;
-        }
+int p1197() {
+    int tests_count;
+    scanf("%d", &tests_count);
+    // std::cout << tests_count  << std::endl;
+    std::vector<std::pair<u32, u32>> base_pos;
+    base_pos.reserve(tests_count);
 
-        std::cout << std::format("{}:{} = {}\n", x, y, possible_steps);
-        // if (x == 0 && y == 0 || x == 0 && y == 7 || x == 7 && y == 7 || x == 7 && y == 0) {
-        //     printf("2\n");
-        // }
-        // if (x == 0 && y > 0 || x == 0 && y < 7 || x == 7 && y < 7 || x < 7 && y == 0) {
-        //     printf("3\n");
-        // }
-        // if (x >= 0 && y >= 2 && x <= 6 && y <= 6) {
-        //     printf("8");
-        // } else if () {
-
-        // }
+    for (int i = 0; i < tests_count; i++) {
+        char input[3];
+        scanf("%2s", input);
+        u32 ch_pos = input[0] - '0' - 49;
+        u32 dig_pos = input[1] - '0' - 1;
+        base_pos.emplace_back(ch_pos, dig_pos);
+        // std::cout << "Input: " << input << std::endl;
+        // std::cout << "also: " << ch_pos << " " << dig_pos << std::endl;
     }
+
+    for (const auto& [x, y] : base_pos) {
+        u32 possible_steps = 0;
+
+        if (x >= 1 && y >= 2) {
+            possible_steps++;
+        }
+        if (x >= 1 && y <= 5) {
+            possible_steps++;
+        }
+        if (x >= 2 && y >= 1) {
+            possible_steps++;
+        }
+        if (x >= 2 && y <= 6) {
+            possible_steps++;
+        }
+        if (x <= 6 && y >= 2) {
+            possible_steps++;
+        }
+        if (x <= 6 && y <= 5) {
+            possible_steps++;
+        }
+        if (x <= 5 && y >= 1) {
+            possible_steps++;
+        }
+        if (x <= 5 && y <= 6) {
+            possible_steps++;
+        }
+        printf("%d\n", possible_steps);
+    }
+
+    return 0;
 }
-// int p1197() {
-//     constexpr static u32 bound = 7;
-//     u32 tests_count;
-//     scanf("%u", &tests_count);
 
-//     std::vector<std::pair<u32, u32>> base_pos;
-//     base_pos.reserve(tests_count);
+int p2066() {
+    int x,y,z;
+    scanf("%d%d%d", &x, &y, &z);
+    int ret_v = 0;
+    if (y > 1) {
+        ret_v = x - (y * z);
+    } else {
+        ret_v = x - (y + z);
+    }
+    printf("%d\n", ret_v);
+    return 0;
+}
 
-//     for (u32 i = 0; i < tests_count; i++) {
-//         char input[2];
-//         scanf("%s", input);
-//         u32 ch_pos = input[0] - '0' - 1;
-//         u32 dig_pos = input[1] - '0' - 1;
-//         std::cout << std::format("{}:{}\n", dig_pos, ch_pos);
-//         base_pos.emplace_back(ch_pos, dig_pos);
-//     }
+int p2100() {
+    int guest_count;
+    std::cin >> guest_count;
+    int real_guests = 2;
+    std::string guest;
+    for (int i = 0; i < guest_count; i++) {
+        std::cin >> guest;
+        real_guests++;
+        if (guest.find('+') != std::string::npos) {
+            real_guests++;
+        }
+    }
+    if (real_guests == 13) {
+        real_guests++;
+    }
 
-//     for (const auto& [x, y] : base_pos) {
+    std::cout << real_guests * 100;
+    return 0;
+}
 
-//         if (x >= 0 && y >= 2 && x <= 6 && y <= 6) {
-//             printf("8");
-//         } else if () {
-
-//         }
-//     }
-
-//     return 0;
-// }
+int p1880() {
+    std::unordered_map<int, int> values;
+    int count;
+    for (int i = 0; i < 3; i++) {
+        std::cin >> count;
+        int numbers;
+        for (int i = 0; i < count; i++) {
+            std::cin >> numbers;
+            values[numbers]++;
+        }
+    }
+    int common_numbers = 0;
+    for (const auto& [k, v]: values) {
+        if (v == 3) {
+            common_numbers++;
+        }
+    }
+    std::cout << common_numbers << '\n';
+    return 0;
+}
 
 int main() {
     // p1820();
     // p1197();
-    std::vector<std::pair<u32, u32>> v{{0, 0}, {7, 7}, {0, 7}, {7, 0}};
-    std::vector<std::pair<u32, u32>> v2{{1, 0}, {5, 7}, {1, 7}, {7, 1}};
-    std::vector<std::pair<u32, u32>> v3{{4, 2}, {5, 3}, {3, 4}, {4, 4}};
-    std::vector<std::pair<u32, u32>> v4{{2, 0}};
-
-    impl(v);
-    impl(v2);
-    impl(v3);
-    impl(v4);
+    // p2100();
+    p1880();
     return 0;
 }

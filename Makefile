@@ -3,7 +3,7 @@ BUILD_DIR := build
 CMAKE := cmake
 MAKE_CMD := $(MAKE)
 
-.PHONY: all clean run
+.PHONY: all clean run doxygen
 
 all:
 	make clean
@@ -14,6 +14,10 @@ all:
 clean:
 	@echo "Cleaning build directory..."
 	rm -rf $(BUILD_DIR)
+	rm -rf docs
 
 run:
 	$(BUILD_DIR)/bin/ip_filter $(BUILD_DIR)/assets/ip_filter.tsv
+
+doxygen:
+	doxygen Doxyfile
