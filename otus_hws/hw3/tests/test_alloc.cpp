@@ -8,7 +8,7 @@
 BOOST_AUTO_TEST_SUITE(test_vec)
 
 BOOST_AUTO_TEST_CASE(test_push_back) {
-    AnotherVector<int, BetterAlloc<int>> v;
+    AnotherVector<int, BetterAlloc<int, 1024>> v;
     BOOST_CHECK(v.is_empty());
     BOOST_CHECK(v.capacity() == 0);
 
@@ -66,7 +66,7 @@ BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE(test_iter)
 
 BOOST_AUTO_TEST_CASE(test_push_back) {
-    AnotherVector<int, BetterAlloc<int>> v;
+    AnotherVector<int, BetterAlloc<int, 1024>> v;
     BOOST_CHECK(v.is_empty());
     BOOST_CHECK(v.capacity() == 0);
 
