@@ -7,9 +7,9 @@ Checks: >
   readability-*,
   portability-*,
   cppcoreguidelines-*,
-  -cppcoreguidelines-avoid-magic-numbers,   # можно включить отдельно
-  -cppcoreguidelines-owning-memory,         # если используешь raw pointers
-  -modernize-use-trailing-return-type       # на вкус
+  -cppcoreguidelines-avoid-magic-numbers,
+  -cppcoreguidelines-owning-memory,
+  -modernize-use-trailing-return-type
 WarningsAsErrors: '*'
 HeaderFilterRegex: '.*'
 AnalyzeTemporaryDtors: true

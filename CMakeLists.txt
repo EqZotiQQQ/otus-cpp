@@ -9,6 +9,14 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/build/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/build/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/build/bin)
 
+# include(FetchContent)
+# FetchContent_Declare(
+#     range-v3
+#     GIT_REPOSITORY https://github.com/ericniebler/range-v3.git
+#     GIT_TAG        master
+# )
+# FetchContent_MakeAvailable(range-v3)
+
 include(CTest)
 
 # include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libs)
@@ -16,6 +24,7 @@ include(CTest)
 # add_subdirectory(otus_hws/hw2)
 add_subdirectory(otus_hws/hw3)
 # add_subdirectory(otus_hws/hw4)
+# add_subdirectory(otus_hws/hw5)
 
 # add_subdirectory(experiments)
 # add_subdirectory(problems)
