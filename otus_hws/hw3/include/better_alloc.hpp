@@ -10,7 +10,9 @@ class BetterAlloc {
 public:
     using value_type = T;
 
-    BetterAlloc() = default;
+    BetterAlloc() {
+        init(N);
+    };
 
     // required for map/unordered map. This constructor required to construct internal
     // types of stateless alloc
@@ -25,14 +27,13 @@ public:
 
     // n - amount of object to be placed in this memory blob
     T* allocate(size_t n) {
-        if (!pool_blob) {
-            init(N);
-        }
+        size_t bytes_alloc_count = n * TYPE_SIZE;
         // if pool is full
-        if (pool_offset_b + n * TYPE_SIZE > N - pool_offset_b) {
+        size_t bytes_left = N - pool_offset_b;
+        if (pool_offset_b + bytes_alloc_count > bytes_left) {
             // std::cout << std::format("Use default alloc to allocate {} bytes ({} objects)\n",
             //                          n * TYPE_SIZE, n);
-            return static_cast<T*>(std::malloc(n * TYPE_SIZE));
+            return static_cast<T*>(std::malloc(bytes_alloc_count));
         }
 
         char* free_segmet = pool_blob + pool_offset_b;
@@ -42,7 +43,7 @@ public:
         // std::cout << std::format("Allocated {} bytes ({} objects) at {}\n", n * TYPE_SIZE, n,
         //                          pool_offset_b);
 
-        pool_offset_b += n * TYPE_SIZE;
+        pool_offset_b += bytes_alloc_count;
 
         return ptr;
     }
