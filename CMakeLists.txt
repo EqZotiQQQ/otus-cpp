@@ -17,14 +17,17 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/build/bin)
 # )
 # FetchContent_MakeAvailable(range-v3)
 
+# global level packages:
+find_package(spdlog REQUIRED)
+
 include(CTest)
 
 # include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libs)
 # add_subdirectory(otus_hws/hw1)
 # add_subdirectory(otus_hws/hw2)
-add_subdirectory(otus_hws/hw3)
+# add_subdirectory(otus_hws/hw3)
 # add_subdirectory(otus_hws/hw4)
-# add_subdirectory(otus_hws/hw5)
+add_subdirectory(otus_hws/hw5)
 
 # add_subdirectory(experiments)
 # add_subdirectory(problems)

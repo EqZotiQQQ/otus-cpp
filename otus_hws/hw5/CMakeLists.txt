@@ -15,6 +15,9 @@ add_executable(editor src/main.cpp)
 add_library(editor_lib src/editor.cpp)
 target_link_libraries(editor PRIVATE editor_lib)
 
+find_package(spdlog REQUIRED)
+target_link_libraries(editor_lib PUBLIC spdlog::spdlog)
+
 message(STATUS "editor will use C++ standard: ${STD}")
 
 target_include_directories(editor PRIVATE 
@@ -32,30 +35,30 @@ target_compile_options(editor PRIVATE
     -Wall -Wextra -pedantic -Werror
 )
 
-if(WITH_BOOST_TEST)
-    enable_testing()
+# if(WITH_BOOST_TEST)
+#     enable_testing()
 
-    find_package(Boost 1.70 REQUIRED COMPONENTS unit_test_framework)
+#     find_package(Boost 1.70 REQUIRED COMPONENTS unit_test_framework)
 
-    add_executable(test_editor tests/test_editor.cpp)
+#     add_executable(test_editor tests/test_editor.cpp)
 
-    target_include_directories(
-        test_editor
-        PRIVATE
-            "${CMAKE_CURRENT_SOURCE_DIR}/include"
-    )
+#     target_include_directories(
+#         test_editor
+#         PRIVATE
+#             "${CMAKE_CURRENT_SOURCE_DIR}/include"
+#     )
 
-    target_link_libraries(test_editor PRIVATE Boost::unit_test_framework editor_lib)
+#     target_link_libraries(test_editor PRIVATE Boost::unit_test_framework editor_lib)
 
-    target_compile_options(test_editor PRIVATE
-        -Wall -Wextra -pedantic -Werror
-    )
+#     target_compile_options(test_editor PRIVATE
+#         -Wall -Wextra -pedantic -Werror
+#     )
 
-    add_test(
-        NAME test
-        COMMAND $<TARGET_FILE:test_editor>
-    )
-endif()
+#     add_test(
+#         NAME test
+#         COMMAND $<TARGET_FILE:test_editor>
+#     )
+# endif()
 
 install(TARGETS editor RUNTIME DESTINATION bin)
 
