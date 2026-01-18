@@ -21,8 +21,10 @@ RUN apt-get update && \
         python3-pip \
         doxygen \
         graphviz \
-        clang \
+        clang-20 \
         gdb \
+        clangd-20 \
+        clang-tools-20 \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
@@ -35,7 +37,17 @@ RUN cmake --version && ninja --version
 
 COPY conanfile.txt /app/conanfile.txt
 
+RUN ln -s /usr/bin/clang-20 /usr/bin/clang \
+    && ln -s /usr/bin/clang++-20 /usr/bin/clang++ \
+    && ln -s /usr/bin/clangd-20 /usr/bin/clangd \
+    && ln -s /usr/bin/clangd++-20 /usr/bin/clangd++
+
+RUN ls /usr/bin
+# RUN ln -s /usr/bin/clangd-20 /usr/bin/clangd
+
 WORKDIR /app
+
+ENV CC=clang CXX=clang++
 
 RUN conan install . --build=missing
 

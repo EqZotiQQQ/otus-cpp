@@ -10,7 +10,7 @@ CONTAINER_NAME := otus_container
 all:
 	$(MAKE) clean
 	@mkdir -p $(BUILD_DIR)
-	CC=clang CXX=clang++ $(CMAKE) -DPATCH_VERSION=42 -DWITH_BOOST_TEST=ON -DCMAKE_BUILD_TYPE=Debug -B $(BUILD_DIR)
+	$(CMAKE) -DPATCH_VERSION=42 -DWITH_BOOST_TEST=ON -DCMAKE_BUILD_TYPE=Debug -B $(BUILD_DIR)
 	$(CMAKE) --build $(BUILD_DIR)
 
 clean:
@@ -28,10 +28,10 @@ s:
 	docker stop $(CONTAINER_NAME)
 
 r:
-	docker run --name $(CONTAINER_NAME) \
+	docker run -d --name $(CONTAINER_NAME) \
 	  -v $(HOME)/my_projects/otus-cpp:/app \
 	  -v $(HOME)/.vscode/extensions:/root/.vscode-server/extensions \
-	  $(DOCKER_IMAGE_NAME)
+	  $(DOCKER_IMAGE_NAME) tail -f /dev/null
 
 up:
 	docker start $(CONTAINER_NAME)

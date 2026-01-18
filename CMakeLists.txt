@@ -18,6 +18,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/build/bin)
 # FetchContent_MakeAvailable(range-v3)
 
 # global level packages:
+find_package(Boost REQUIRED)
 find_package(spdlog REQUIRED)
 
 include(CTest)
