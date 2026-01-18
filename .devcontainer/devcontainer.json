@@ -1,42 +1,11 @@
 {
-    "name": "C++23 Development",
-    "build": {
-        "dockerfile": "../Dockerfile",
-        "args": {
-            "USERNAME": "eqzotiqqq"
-        }
+    "name": "otus_container",
+    "build": { "dockerfile": "Dockerfile" },
+    "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash"
     },
-    "runArgs": [
-        "--cap-add=SYS_PTRACE",
-        "--security-opt", "seccomp=unconfined"
-    ],
+    "remoteUser": "root",
     "mounts": [
         "source=${localWorkspaceFolder},target=/workspace,type=bind"
-    ],
-    "customizations": {
-        "eqzotiqqq": {
-            "extensions": [
-                "ms-vscode.cpptools",
-                "ms-vscode.cmake-tools",
-                "xaver.clang-format",
-                "twxs.cmake",
-                "llvm-vs-code-extensions.vscode-clangd",
-                "cheshirekow.cmake-format"
-            ],
-            "settings": {
-                "C_Cpp.default.compilerPath": "/usr/bin/clang++",
-                "C_Cpp.default.cppStandard": "c++23",
-                "C_Cpp.default.intelliSenseMode": "linux-clang-x64",
-                "C_Cpp.clang_format_style": "file",
-                "cmake.configureArgs": [
-                    "-DCMAKE_C_COMPILER=clang",
-                    "-DCMAKE_CXX_COMPILER=clang++",
-                    "-DCMAKE_CXX_STANDARD=23"
-                ]
-            }
-        }
-    },
-    "workspaceFolder": "/workspace",
-    "remoteUser": "eqzotiqqq",
-    "postCreateCommand": "git config --global --add safe.directory /workspace && pre-commit install || true"
+    ]
 }
