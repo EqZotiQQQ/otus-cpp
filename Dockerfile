@@ -25,30 +25,31 @@ RUN apt-get update && \
         gdb \
         clangd-20 \
         clang-tools-20 \
+        libboost-all-dev \ 
+        libspdlog-dev \
+        flatbuffers-compiler \
+        libflatbuffers-dev \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-RUN pip3 install --break-system-packages conan --upgrade
+# RUN pip3 install --break-system-packages conan --upgrade
 
 # Create default Conan profile (important!)
-RUN conan profile detect --force
+# RUN conan profile detect --force
 
 RUN cmake --version && ninja --version
 
-COPY conanfile.txt /app/conanfile.txt
+# COPY conanfile.txt clang-release clang-debug /app/
 
 RUN ln -s /usr/bin/clang-20 /usr/bin/clang \
     && ln -s /usr/bin/clang++-20 /usr/bin/clang++ \
     && ln -s /usr/bin/clangd-20 /usr/bin/clangd \
     && ln -s /usr/bin/clangd++-20 /usr/bin/clangd++
 
-RUN ls /usr/bin
-# RUN ln -s /usr/bin/clangd-20 /usr/bin/clangd
-
 WORKDIR /app
 
 ENV CC=clang CXX=clang++
 
-RUN conan install . --build=missing
-
+# RUN conan install . --build=missing
+# RUN conan install . -pr clang-debug --build=missing
 
