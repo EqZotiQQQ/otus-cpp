@@ -68,8 +68,6 @@ public:
         }
     }
 
-
-
 private:
     std::unordered_map<std::string, std::shared_ptr<Document>> documents_{};
     std::vector<std::shared_ptr<View>> views_{};

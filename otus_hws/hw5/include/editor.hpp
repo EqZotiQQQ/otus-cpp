@@ -1,5 +1,7 @@
 #pragma once
 
+#include <flatbuffers/buffer.h>
+#include <flatbuffers/flatbuffer_builder.h>
 #include <spdlog/spdlog.h>
 #include <algorithm>
 #include <filesystem>
@@ -16,24 +18,21 @@
 #include <boost/type_index.hpp>
 #include <ranges>
 
-class Serializeable{
+#include <flatbuffers/flatbuffers.h>
+#include "shapes_generated.h"
+
+class Shape {
 public:
-    virtual std::string serialize() const = 0;
-    // virtual Serializeable* deserialize() = 0;
-
-    virtual ~Serializeable() = default;
-};
-
-class Shape: public Serializeable {
+    virtual ~Shape() {}
     virtual int square() = 0;
 };
 
-class Point: public Serializeable {
+class Point {
 public:
     explicit Point(int x, int y): x_(x), y_(y) {}
 
-    std::string serialize() const override {
-        return fmt::format("x={}:y={}", x_, y_);
+    Shapes::Point to_flatbuffer_t() const {
+        return Shapes::Point(x_, y_);
     }
 
 private:
@@ -46,15 +45,13 @@ public:
     explicit Rectangle(Point left_top, Point right_down): left_top_(left_top), right_down_(right_down) {}
     explicit Rectangle(int x1, int y1, int x2, int y2): Rectangle(Point{x1, y1}, Point{x2, y2}) {}
 
-    std::string serialize() const override {
-        // todo flatbuffers or protobuf
-        return fmt::format("left_top_={}:right_down_={}", left_top_.serialize(), right_down_.serialize());
-    }
-
-    int square() override {
+    int square() {
         return 42;
     }
 
+    Shapes::Rectangle to_flatbuffer_t() const {
+        return Shapes::Rectangle(left_top_.to_flatbuffer_t(), right_down_.to_flatbuffer_t());
+    }
 private:
     Point left_top_;
     Point right_down_;
@@ -65,15 +62,13 @@ public:
     explicit Line(Point start, Point end): start_(start), end_(end) {}
     explicit Line(int x1, int y1, int x2, int y2): Line(Point{x1, y1}, Point{x2, y2}) {}
 
-    std::string serialize() const override {
-        // todo flatbuffers or protobuf
-        return fmt::format("start_={}:end_={}", start_.serialize(), end_.serialize());
-    }
-
-    int square() override {
+    int square() {
         return 0;
     }
 
+    Shapes::Line to_flatbuffer_t() const {
+        return Shapes::Line(start_.to_flatbuffer_t(), end_.to_flatbuffer_t());
+    }
 private:
     Point start_;
     Point end_;
@@ -83,11 +78,6 @@ class Circle: public Shape {
 public:
     explicit Circle(Point center, int radius): center_(center), radius_(radius) {}
 
-    std::string serialize() const override {
-        // todo flatbuffers or protobuf
-        return fmt::format("center_={}:radius_={}", center_.serialize(), radius_);
-    }
-
     int square() override {
         if (square_.has_value()) {
             return *square_;
@@ -95,6 +85,10 @@ public:
             square_ = std::make_optional(std::numbers::pi * radius_ * radius_);
         }
         return *square_;
+    }
+
+    Shapes::Circle to_flatbuffer_t() const {
+        return Shapes::Circle(center_.to_flatbuffer_t(), radius_);
     }
 private:
     Point center_;
@@ -123,37 +117,55 @@ static inline ObjectType type_to_enum() {
     }
 }
 
-class Document: public Serializeable {
+class Document {
 public:
     Document(const std::string& doc_name): document_name_(doc_name) {}
 
-    std::string serialize() const override {
-        std::string s = "";
-        for (const auto& [k, v]: document_objects_) {
-            if (v.empty()) {
-                continue;
-            }
-            std::string type_name = boost::typeindex::type_id<decltype(*v.front())>().pretty_name();
-            auto serialized_view = v | std::views::transform([](auto const& object) {
-                    return object->serialize();
-                });
+    std::string serialize() const {
+        std::vector<Shapes::Circle> circles;
+        circles.reserve(document_objects_.contains(ObjectType::CIRCLE) ? document_objects_.at(ObjectType::CIRCLE).size() : 0);
+        std::vector<Shapes::Line> lines;
+        lines.reserve(document_objects_.contains(ObjectType::LINE) ? document_objects_.at(ObjectType::LINE).size() : 0);
+        std::vector<Shapes::Rectangle> rectangles;
+        rectangles.reserve(document_objects_.contains(ObjectType::RECTANGLE) ? document_objects_.at(ObjectType::RECTANGLE).size() : 0);
 
-            std::vector<std::string> serialized_group(
-                serialized_view.begin(),
-                serialized_view.end()
-            );
-
-            std::string out;
-            if (!serialized_group.empty()) {
-                out = serialized_group[0];
-                for (size_t i = 1; i < serialized_group.size(); ++i) {
-                    out += ", " + serialized_group[i];
+        for (const auto& [obj_type, objects]: document_objects_) {
+            if constexpr (std::is_same_v<decltype(obj_type), Circle>) {
+                for (const auto& circle: objects) {
+                    const auto ptr = std::dynamic_pointer_cast<Circle>(circle);
+                    if (ptr) {
+                        circles.push_back(ptr->to_flatbuffer_t()); // error due to base class doesn't have this method but i dont know how to declare it correct
+                    }
+                }
+            } else if constexpr (std::is_same_v<decltype(obj_type), Line>) {
+                for (const auto& line: objects) {
+                    const auto ptr = std::dynamic_pointer_cast<Line>(line);
+                    if (ptr) {
+                        lines.push_back(ptr->to_flatbuffer_t()); // error due to base class doesn't have this method but i dont know how to declare it correct
+                    }
+                }
+            } else if constexpr (std::is_same_v<decltype(obj_type), Rectangle>) {
+                for (const auto& circle: objects) {
+                    const auto ptr = std::dynamic_pointer_cast<Rectangle>(circle);
+                    if (ptr) {
+                        rectangles.push_back(ptr->to_flatbuffer_t()); // error due to base class doesn't have this method but i dont know how to declare it correct
+                    }
                 }
             }
-
-            s += fmt::format(",object={}:data={}", type_name, out);
         }
-        return s;
+
+        flatbuffers::FlatBufferBuilder builder;
+        auto fb_circles = builder.CreateVectorOfStructs(circles);
+        auto fb_lines = builder.CreateVectorOfStructs(lines);
+        auto fb_rectangles = builder.CreateVectorOfStructs(rectangles);
+
+        auto doc = Shapes::CreateDocument(builder, fb_circles, fb_lines, fb_rectangles);
+
+        builder.Finish(doc);
+
+        std::string serialized_doc = reinterpret_cast<const char*>(builder.GetBufferPointer());
+
+        return serialized_doc;
     }
 
     template<typename ShapeName>
@@ -164,11 +176,7 @@ public:
         document_objects_[key].push_back(std::make_shared<ShapeName>(shape));
     }
 
-    ~Document() override {};
-    // Serializeable* deserialize() override {
-        
-    // }
 private:
     std::string document_name_{};
-    std::unordered_map<ObjectType, std::vector<std::shared_ptr<Serializeable>>> document_objects_{};
+    std::unordered_map<ObjectType, std::vector<std::shared_ptr<Shape>>> document_objects_{}; // or use multiple vectors for each type of shape to remove vtable and shared_ptr
 };

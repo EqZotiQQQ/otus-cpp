@@ -49,13 +49,11 @@ public:
 
     std::string serialize(const std::string& doc_name, std::filesystem::path& path) const {
         std::string serialized = model_->serialize(doc_name);
+
         model_->create_new_document(path);
          
         return serialized;
     }
-
-
-    
 
     // std::shared_ptr<Document> import_document_from_file(const std::filesystem::path& path) {
 
