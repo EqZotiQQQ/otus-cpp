@@ -20,6 +20,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/build/bin)
 # global level packages:
 find_package(Boost REQUIRED)
 find_package(spdlog REQUIRED)
+# find_package(Flatbuffers REQUIRED)  # header only
 
 include(CTest)
 

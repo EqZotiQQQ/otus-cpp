@@ -5,8 +5,8 @@
 #include <memory>
 #include <stdexcept>
 #include <vector>
-#include <view.hpp>
 
+#include "view.hpp"
 #include "editor.hpp"
 #include "spdlog/spdlog.h"
 #include "fmt/format.h"

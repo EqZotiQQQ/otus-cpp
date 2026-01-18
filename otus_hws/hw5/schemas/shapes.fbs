@@ -1,0 +1,33 @@
+namespace Shapes;
+
+enum ShapeType: byte {
+    Circle = 1,
+    Line,
+    Rectangle
+}
+
+struct Point {
+    x:int;
+    y:int;
+}
+
+struct Circle {
+    center:Point;
+    radius:float;
+}
+
+struct Line {
+    start:Point;
+    end:Point;
+}
+
+struct Rectangle {
+    left_up:Point;
+    right_down:Point;
+}
+
+table Document {
+    circles:[Circle];
+    lines:[Line];
+    rectangles:[Rectangle];
+}

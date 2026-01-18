@@ -18,6 +18,8 @@ target_link_libraries(editor PRIVATE editor_lib)
 # find_package(Boost REQUIRED COMPONENTS type_index)
 # target_link_libraries(editor_lib PUBLIC Boost::type_index)
 
+# find_package(Flatbuffers REQUIRED) # header only
+
 find_package(spdlog REQUIRED)
 target_link_libraries(editor_lib PUBLIC spdlog::spdlog)
 
@@ -36,6 +38,37 @@ target_compile_options(editor PRIVATE
 )
 target_compile_options(editor PRIVATE
     -Wall -Wextra -pedantic -Werror
+)
+
+MESSAGE ("Generating FlatBuffers schema to ${CMAKE_BINARY_DIR}/include/shapes.h")
+MESSAGE ("Generating FlatBuffers schema to ${CMAKE_CURRENT_SOURCE_DIR}/schemas/shapes.fbs")
+
+add_custom_command(
+    OUTPUT ${CMAKE_BINARY_DIR}/include/shapes.h
+    COMMAND flatc --cpp --gen-object-api
+            -o ${CMAKE_BINARY_DIR}/include/shapes.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/schemas/shapes.fbs
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/schemas/shapes.fbs
+    COMMENT "Generating FlatBuffers schema"
+)
+
+add_custom_target(generate_flatbuffers ALL
+    DEPENDS ${CMAKE_BINARY_DIR}/include/shapes.h
+)
+
+target_include_directories(
+    editor_lib PRIVATE
+    ${CMAKE_CURRENT_BINARY_DIR}
+    /usr/include
+)
+
+add_dependencies(editor_lib generate_flatbuffers)
+
+target_include_directories(
+    editor_lib
+    PRIVATE
+    ${CMAKE_CURRENT_BINARY_DIR}
+    /usr/include            # flatbuffers headers
 )
 
 # if(WITH_BOOST_TEST)
