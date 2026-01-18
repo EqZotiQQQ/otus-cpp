@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <fstream>
 #include <memory>
+#include <stdexcept>
 #include <vector>
 #include <view.hpp>
 
@@ -16,8 +17,8 @@ public:
 
     std::shared_ptr<Document> create_new_document(const std::string& doc_name) {
         auto doc = std::make_shared<Document>(doc_name);
-        documents_.emplace(doc_name, doc);
-        spdlog::info(fmt::format("Created document: {}", doc_name));
+        documents_.emplace(std::make_pair(doc_name, doc));
+        spdlog::info("Created document: {}", doc_name);
         return doc;
     }
 
@@ -27,7 +28,49 @@ public:
         return !file ? 1 : 0;
     }
 
+    void add_rectangle_document(const std::string& doc_name, const Rectangle& rec1) {
+        if (documents_.contains(doc_name)) {
+            documents_[doc_name]->add_shape(rec1);
+        } else {
+            std::string err_s = fmt::format("Failed to add {}. Document {} not found!", "Rectangle", doc_name);
+            spdlog::error(err_s);
+            throw std::runtime_error(err_s);
+        }
+    }
+
+    void add_line_document(const std::string& doc_name, const Line& line) {
+        if (documents_.contains(doc_name)) {
+            documents_[doc_name]->add_shape(line);
+        } else {
+            std::string err_s = fmt::format("Failed to add {}. Document {} not found!", "Line", doc_name);
+            spdlog::error(err_s);
+            throw std::runtime_error(err_s);
+        }
+    }
+
+    void add_circle_document(const std::string& doc_name, const Circle& circle) {
+        if (documents_.contains(doc_name)) {
+            documents_[doc_name]->add_shape(circle);
+        } else {
+            std::string err_s = fmt::format("Failed to add {}. Document {} not found!", "Circle", doc_name);
+            spdlog::error(err_s);
+            throw std::runtime_error(err_s);
+        }
+    }
+
+    std::string serialize(const std::string& doc_name) const {
+        if (documents_.contains(doc_name)) {
+            return documents_.at(doc_name)->serialize();
+        } else {
+            std::string err_s = fmt::format("Failed to serialize {} document due to its not found!", doc_name);
+            spdlog::error(err_s);
+            throw std::runtime_error(err_s);
+        }
+    }
+
+
+
 private:
-    std::unordered_map<std::string, std::shared_ptr<Document>> documents_;
-    std::vector<std::shared_ptr<View>> views_;
+    std::unordered_map<std::string, std::shared_ptr<Document>> documents_{};
+    std::vector<std::shared_ptr<View>> views_{};
 };

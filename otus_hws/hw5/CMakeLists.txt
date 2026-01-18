@@ -15,6 +15,9 @@ add_executable(editor src/main.cpp)
 add_library(editor_lib src/editor.cpp)
 target_link_libraries(editor PRIVATE editor_lib)
 
+# find_package(Boost REQUIRED COMPONENTS type_index)
+# target_link_libraries(editor_lib PUBLIC Boost::type_index)
+
 find_package(spdlog REQUIRED)
 target_link_libraries(editor_lib PUBLIC spdlog::spdlog)
 
