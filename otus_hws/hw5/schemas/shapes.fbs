@@ -31,3 +31,5 @@ table Document {
     lines:[Line];
     rectangles:[Rectangle];
 }
+
+root_type Document;

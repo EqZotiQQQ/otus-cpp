@@ -15,11 +15,16 @@ class Model {
 public:
     Model() {}
 
-    std::shared_ptr<Document> create_new_document(const std::string& doc_name) {
+    auto create_new_document(const std::string& doc_name) {
         auto doc = std::make_shared<Document>(doc_name);
         documents_.emplace(std::make_pair(doc_name, doc));
-        spdlog::info("Created document: {}", doc_name);
         return doc;
+    }
+
+    auto deserialize(const std::string& doc_name, const char* serialized_doc) {
+        std::shared_ptr<Document> deserialized_doc = std::make_shared<Document>(Document(serialized_doc));
+        documents_[doc_name] = deserialized_doc;
+        return deserialized_doc;
     }
 
     int create_new_file_task(std::filesystem::path&& file_path) const {
@@ -58,7 +63,7 @@ public:
         }
     }
 
-    std::string serialize(const std::string& doc_name) const {
+    const char* serialize(const std::string& doc_name) const {
         if (documents_.contains(doc_name)) {
             return documents_.at(doc_name)->serialize();
         } else {

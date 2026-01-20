@@ -35,10 +35,10 @@ int main() {
 
     controller.export_document_to_file(doc_name, new_doc_path);
 
-    std::string serialized_doc = controller.serialize(doc_name);
-    spdlog::info("{}", serialized_doc);
+    const char* serialized_doc = controller.serialize(doc_name);
+    spdlog::info("Serialized doc: {}", serialized_doc);
 
-    
+    controller.deserialize("MyFirstDrawing", serialized_doc);
 
     // controller.import_document_from_file(new_doc_path);
     // controller
