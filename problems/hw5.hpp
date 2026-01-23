@@ -1,6 +1,5 @@
 #include <algorithm>
 #include <cstdint>
-#include <format>
 #include <iostream>
 #include <queue>
 #include <set>

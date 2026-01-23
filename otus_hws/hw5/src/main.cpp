@@ -1,12 +1,5 @@
-#include <algorithm>
 #include <cassert>
-#include <iostream>
-#include <list>
-#include <map>
 #include <memory>
-#include <stdexcept>
-#include <unordered_map>
-#include <vector>
 
 #include "editor.hpp"
 #include "view.hpp"
@@ -14,34 +7,33 @@
 #include "controller.hpp"
 
 int main() {
-    std::unique_ptr<View> view = std::make_unique<View>(View{});
-    std::unique_ptr<Model> model = std::make_unique<Model>(Model{});
-    Controller controller{std::move(model), std::move(view)};
-
     std::filesystem::path new_doc_path = std::filesystem::path("my_doc.txt");
 
-    std::string doc_name = "MyFirstDrawing";
-    controller.create_new_document(doc_name);
+    {
+        std::unique_ptr<View> view = std::make_unique<View>(View{});
+        std::unique_ptr<Model> model = std::make_unique<Model>(Model{});
+        Controller controller{std::move(model), std::move(view)};
 
-    
-    Rectangle rec1{Point{1, 1}, Point{3,3}};
-    controller.add_rectangle_document(doc_name, rec1);
+        std::string doc_name = "MyFirstDrawing";
+        controller.create_new_document(doc_name);
 
-    Circle circle{Point{1, 1}, 42};
-    controller.add_circle_document(doc_name, circle);
+        Rectangle rec1{Point{1, 1}, Point{3,3}};
+        controller.add_rectangle_document(doc_name, rec1);
 
-    Line line{Point{1, 1}, Point{3,3}};
-    controller.add_line_document(doc_name, line);
+        Circle circle{Point{1, 1}, 42};
+        controller.add_circle_document(doc_name, circle);
 
-    controller.export_document_to_file(doc_name, new_doc_path);
+        Line line{Point{1, 1}, Point{3,3}};
+        controller.add_line_document(doc_name, line);
 
-    const char* serialized_doc = controller.serialize(doc_name);
-    spdlog::info("Serialized doc: {}", serialized_doc);
-
-    controller.deserialize("MyFirstDrawing", serialized_doc);
-
-    // controller.import_document_from_file(new_doc_path);
-    // controller
+        controller.export_document_to_file(doc_name, new_doc_path);
+    }
+    {
+        std::unique_ptr<View> view = std::make_unique<View>(View{});
+        std::unique_ptr<Model> model = std::make_unique<Model>(Model{});
+        Controller controller{std::move(model), std::move(view)};
+        controller.import_document_from_file(new_doc_path);
+    }
     
     return 0;
 }

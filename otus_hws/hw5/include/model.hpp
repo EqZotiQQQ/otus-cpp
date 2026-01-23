@@ -21,9 +21,9 @@ public:
         return doc;
     }
 
-    auto deserialize(const std::string& doc_name, const char* serialized_doc) {
-        std::shared_ptr<Document> deserialized_doc = std::make_shared<Document>(Document(serialized_doc));
-        documents_[doc_name] = deserialized_doc;
+    auto deserialize(const std::vector<uint8_t> serialized_doc) {
+        auto deserialized_doc = std::make_shared<Document>(Document(serialized_doc));
+        documents_[deserialized_doc->get_doc_name()] = deserialized_doc;
         return deserialized_doc;
     }
 
@@ -63,7 +63,7 @@ public:
         }
     }
 
-    const char* serialize(const std::string& doc_name) const {
+    std::vector<uint8_t> serialize(const std::string& doc_name) const {
         if (documents_.contains(doc_name)) {
             return documents_.at(doc_name)->serialize();
         } else {

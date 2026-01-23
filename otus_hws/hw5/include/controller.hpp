@@ -1,5 +1,6 @@
 #pragma once
 
+#include <spdlog/common.h>
 #include <algorithm>
 #include <filesystem>
 #include <fstream>
@@ -12,25 +13,16 @@
 #include "model.hpp"
 #include "view.hpp"
 
-struct CreateFileNameExpected {
-    bool ok;
-    std::optional<std::string> error_msg;
-};
+
 
 class Controller {
 public:
     Controller(std::unique_ptr<Model>&& model, std::unique_ptr<View>&& view) : model_(std::move(model)), view_(std::move(view)) {
     }
 
-    std::shared_ptr<Document> create_new_document(const std::string& doc_name) {
-        const auto doc = model_->create_new_document(doc_name);
-        view_->print_new_doc_created(doc->get_doc_name());
-        return doc;
-    }
-
-    void export_document_to_file(const std::string& doc_name, const std::filesystem::path& path) const {
-        (void)doc_name;
-        (void)path;
+    void create_new_document(const std::string& doc_name) {
+        const std::shared_ptr<Document> doc = model_->create_new_document(doc_name);
+        view_->show_doc(doc);
     }
 
     void add_rectangle_document(const std::string& doc_name, const Rectangle& rec) {
@@ -48,27 +40,64 @@ public:
         view_->post_add_figure<Circle>();
     }
 
-    const char* serialize(const std::string& doc_name) const {
-        const char* serialized_model = model_->serialize(doc_name);
-        const char* serialized_view = view_->print_serialized_data(serialized_model);
-        return serialized_view;
+    void serialize(const std::string& doc_name) const {
+        std::vector<uint8_t> serialized = model_->serialize(doc_name);
+        view_->print_serialized_data(serialized);
     }
 
-    const char* serialize(const std::string& doc_name, std::filesystem::path& path) const {
-        const char* serialized_model = model_->serialize(doc_name);
-        const char* serialized_view = view_->print_serialized_path_dst(doc_name, path, serialized_model);
-        return serialized_view;
+    void serialize(const std::string& doc_name, std::filesystem::path& path) const {
+        std::vector<uint8_t> serialized_model = model_->serialize(doc_name);
+        view_->print_serialized_path_dst(doc_name, path, serialized_model);
     }
 
-    std::shared_ptr<Document> deserialize(const std::string& doc_name, const char* serialized_doc) const {
-        auto doc_model = model_->deserialize(doc_name, serialized_doc);
-        auto doc_view = view_->convert_to_view_and_log(doc_model);
-        return doc_view;
+    void deserialize(std::vector<uint8_t> serialized_doc) const {
+        std::shared_ptr<Document> doc = model_->deserialize(serialized_doc);
+        view_->draw_doc(doc);
     }
 
-    // std::shared_ptr<Document> import_document_from_file(const std::filesystem::path& path) {
+    void serialize_and_deserialize(const std::string& doc_name) {
+        std::vector<uint8_t> serialized_doc = model_->serialize(doc_name);
+        std::shared_ptr<Document> doc = model_->deserialize(serialized_doc);
+    }
 
-    // }
+    static void dump_to_file(const std::filesystem::path& path, const std::vector<uint8_t>& serialized) {
+        std::ofstream out(path, std::ios::binary);
+        if (!out)
+            throw std::runtime_error("Failed to open file");
+
+        out.write(reinterpret_cast<const char*>(serialized.data()), static_cast<std::streamsize>(serialized.size()));
+    }
+
+    static std::vector<uint8_t> load_from_file(const std::filesystem::path& path) {
+        std::ifstream infile(path, std::ios::binary);
+        
+        if (!infile) {
+            throw fmt::format("Failed to open doc stored at file {} :(", path.c_str());
+        }
+        infile.seekg(0, std::ios::end);
+        const std::streamsize size = infile.tellg();
+        infile.seekg(0, std::ios::beg);
+
+        std::vector<uint8_t> buffer(size);
+
+        if (!infile.read(reinterpret_cast<char*>(buffer.data()), size)) {
+            throw fmt::format("Failed to read doc stored at file {} :(", path.c_str());
+        }
+
+        return buffer;
+    }
+
+    void export_document_to_file(const std::string& doc_name, const std::filesystem::path& path) const {
+        const std::vector<uint8_t> serialized = model_->serialize(doc_name);
+        dump_to_file(path, serialized);
+        view_->notify_user_about_success_dump(doc_name, path);
+    }
+
+    void import_document_from_file(const std::filesystem::path& path) {
+        std::vector<uint8_t> buffer = Controller::load_from_file(path);
+        std::shared_ptr<Document> deserialized = model_->deserialize(buffer);
+        view_->show_doc(deserialized);
+    }
 
 private:
     std::unique_ptr<Model> model_;

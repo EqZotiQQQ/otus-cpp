@@ -27,6 +27,7 @@ struct Rectangle {
 }
 
 table Document {
+    doc_name:string;
     circles:[Circle];
     lines:[Line];
     rectangles:[Rectangle];
