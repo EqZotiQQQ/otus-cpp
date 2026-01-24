@@ -11,9 +11,49 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
+include(FetchContent)
+
+FetchContent_Declare(
+    fmt
+    GIT_REPOSITORY https://github.com/fmtlib/fmt.git
+    GIT_TAG 12.1.0
+)
+
+set(FMT_BUILD_SHARED OFF)
+set(FMT_BUILD_TESTS OFF)
+set(FMT_BUILD_DOCS OFF)
+
+FetchContent_MakeAvailable(fmt)
+
+set(SPDLOG_FMT_EXTERNAL ON)
+set(SPDLOG_BUILD_SHARED OFF)
+set(SPDLOG_BUILD_EXAMPLE OFF)
+set(SPDLOG_BUILD_TESTS OFF)
+set(SPDLOG_BUILD_BENCH OFF)
+
+FetchContent_Declare(
+    spdlog
+    GIT_REPOSITORY https://github.com/gabime/spdlog.git
+    GIT_TAG v1.17.0
+)
+
+FetchContent_MakeAvailable(spdlog)
+
+
 add_executable(matrix src/main.cpp)
 add_library(matrix_lib src/matrix.cpp)
 target_link_libraries(matrix PRIVATE matrix_lib)
+
+target_link_libraries(matrix_lib
+    PUBLIC
+    spdlog::spdlog
+)
+
+target_link_libraries(matrix_lib
+    PUBLIC
+    spdlog::spdlog
+)
+
 
 message(STATUS "matrix will use C++ standard: ${STD}")
 

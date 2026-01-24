@@ -8,6 +8,8 @@
 #include <boost/multi_index/composite_key.hpp>
 #include <boost/multi_index/tag.hpp>
 
+#include <spdlog/spdlog.h>
+
 using namespace boost::multi_index;
 
 struct Cell {
@@ -30,20 +32,18 @@ using Matrix = multi_index_container<
 >;
 
  
-class MatrixBase {
-public:
-    MatrixBase(int default_value): default_value_(default_value) {}
-    
-    void insert(Cell&& cell) {
-        matrix_.insert(std::move(cell));
-    }
+class MatrixInterface {
+public:    
+    virtual void insert(int x, int y, int value) = 0;
+    virtual ~MatrixInterface() = 0;
+private:
+};
 
-    template <typename ... Args>
-    void insert(Args... args) {
-        matrix_.emplace(args...);
-    }
-    
-    void insert(int x, int y, int value) {
+class MatrixImpl: public MatrixInterface {
+public:
+    MatrixImpl(int default_value): default_value_(default_value) {}
+
+    void insert(int x, int y, int value) override {
         auto& index = matrix_.get<by_xy>();
         
         auto it = index.find(std::make_tuple(x, y));
@@ -67,13 +67,14 @@ private:
     int default_value_;
 };
 
-class MatrixImpl: public MatrixBase {
+class MatrixProxy: public MatrixInterface {
 public:
-    MatrixImpl(int default_value): MatrixBase(default_value) {}
+    MatrixProxy(int default_value): matrix_impl_(default_value) {}
+
+    void insert(int x, int y, int value) override {
+        spdlog::info("Trying to add to {}:{} value {}", x, y, value);
+        matrix_impl_.insert(x, y, value);
+    }
 private:
-};
-class MatrixProxy: public MatrixBase {
-public:
-    MatrixProxy(int default_value): MatrixBase(default_value) {}
-private:
+    MatrixImpl matrix_impl_;
 };
