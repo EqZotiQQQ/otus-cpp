@@ -11,9 +11,43 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
+include(FetchContent)
+
+FetchContent_Declare(
+    fmt
+    GIT_REPOSITORY https://github.com/fmtlib/fmt.git
+    GIT_TAG 12.1.0
+)
+
+set(FMT_BUILD_SHARED OFF)
+set(FMT_BUILD_TESTS OFF)
+set(FMT_BUILD_DOCS OFF)
+
+FetchContent_MakeAvailable(fmt)
+
+set(SPDLOG_FMT_EXTERNAL ON)
+set(SPDLOG_BUILD_SHARED OFF)
+set(SPDLOG_BUILD_EXAMPLE OFF)
+set(SPDLOG_BUILD_TESTS OFF)
+set(SPDLOG_BUILD_BENCH OFF)
+
+FetchContent_Declare(
+    spdlog
+    GIT_REPOSITORY https://github.com/gabime/spdlog.git
+    GIT_TAG v1.17.0
+)
+
+FetchContent_MakeAvailable(spdlog)
+
 add_executable(editor src/main.cpp)
 add_library(editor_lib src/editor.cpp)
 target_link_libraries(editor PRIVATE editor_lib)
+
+
+target_link_libraries(editor
+    PRIVATE
+    spdlog::spdlog
+)
 
 # find_package(SFML 2.5 COMPONENTS graphics window system REQUIRED)
 
@@ -22,10 +56,9 @@ target_link_libraries(editor PRIVATE editor_lib)
 
 # find_package(Flatbuffers REQUIRED) # header only
 
-find_package(spdlog REQUIRED)
 target_link_libraries(editor_lib PUBLIC spdlog::spdlog)
 
-target_link_libraries(editor_lib PUBLIC sfml-graphics sfml-window sfml-system)
+# target_link_libraries(editor_lib PUBLIC sfml-graphics sfml-window sfml-system)
 
 
 message(STATUS "editor will use C++ standard: ${STD}")

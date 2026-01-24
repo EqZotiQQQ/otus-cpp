@@ -10,7 +10,6 @@
 #include <boost/type_index.hpp>
 #include "editor.hpp"
 #include "model.hpp"
-#include <SFML/Graphics.hpp>
 
 class View {
 public:

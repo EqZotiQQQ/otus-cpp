@@ -26,13 +26,12 @@ RUN apt-get update && \
         clangd-20 \
         clang-tools-20 \
         libboost-all-dev \ 
-        libspdlog-dev \
         flatbuffers-compiler \
         libflatbuffers-dev \
-        libsfml-dev \
-    && apt-get clean \
+        && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
+# libspdlog-dev # libsfml-dev \
 # RUN pip3 install --break-system-packages conan --upgrade
 
 # Create default Conan profile (important!)

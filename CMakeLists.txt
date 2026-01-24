@@ -9,19 +9,6 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/build/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/build/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/build/bin)
 
-# include(FetchContent)
-# FetchContent_Declare(
-#     range-v3
-#     GIT_REPOSITORY https://github.com/ericniebler/range-v3.git
-#     GIT_TAG        master
-# )
-# FetchContent_MakeAvailable(range-v3)
-
-# global level packages:
-find_package(Boost REQUIRED)
-find_package(spdlog REQUIRED)
-# find_package(Flatbuffers REQUIRED)  # header only
-
 include(CTest)
 
 # include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libs)
