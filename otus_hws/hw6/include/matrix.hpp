@@ -113,6 +113,34 @@ public:
         return matrix_.size();
     }
 
+    using iterator = Matrix::index<by_xy>::type::iterator;
+    using const_iterator = Matrix::index<by_xy>::type::const_iterator;
+
+    iterator begin() {
+        return matrix_.get<by_xy>().begin();
+    }
+
+    iterator end() {
+        return matrix_.get<by_xy>().end();
+    }
+
+    const_iterator begin() const {
+        return matrix_.get<by_xy>().begin();
+    }
+
+    const_iterator end() const {
+        return matrix_.get<by_xy>().end();
+    }
+
+    const_iterator cbegin() const {
+        return matrix_.get<by_xy>().cbegin();
+    }
+
+    const_iterator cend() const {
+        return matrix_.get<by_xy>().cend();
+    }
+
+
 private:
     Matrix matrix_;
     int default_value_;
@@ -138,6 +166,33 @@ public:
     size_t size() const override {
         return matrix_impl_.size();
     }
+    using iterator = MatrixImpl::iterator;
+    using const_iterator = MatrixImpl::const_iterator;
+
+    iterator begin() {
+        return matrix_impl_.begin();
+    }
+
+    iterator end() {
+        return matrix_impl_.end();
+    }
+
+    const_iterator begin() const {
+        return matrix_impl_.begin();
+    }
+
+    const_iterator end() const {
+        return matrix_impl_.end();
+    }
+
+    const_iterator cbegin() const {
+        return matrix_impl_.cbegin();
+    }
+
+    const_iterator cend() const {
+        return matrix_impl_.cend();
+    }
+
 private:
     MatrixImpl matrix_impl_;
 };
