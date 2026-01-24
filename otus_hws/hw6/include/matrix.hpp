@@ -37,6 +37,7 @@ class MatrixInterface {
 public:    
     virtual void insert(int x, int y, int value) = 0;
     virtual int get_value_at(int x, int y) const = 0;
+    virtual size_t size() const = 0;
     virtual ~MatrixInterface() {};
 private:
 };
@@ -108,6 +109,10 @@ public:
         return it == index.end() ? default_value_ : it->value;
     }
 
+    size_t size() const override {
+        return matrix_.size();
+    }
+
 private:
     Matrix matrix_;
     int default_value_;
@@ -129,6 +134,10 @@ public:
     RowProxy operator[](int x) {
         return RowProxy(*this, x);
     };
+
+    size_t size() const override {
+        return matrix_impl_.size();
+    }
 private:
     MatrixImpl matrix_impl_;
 };
