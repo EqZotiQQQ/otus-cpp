@@ -22,7 +22,7 @@ int main() {
     {
         std::cout << "\n\n#### User input sequence has started. CTRL+D to stop recording\n\n";
         CommandLineParser parser;
-        parser.parse_command();
+        parser.parse_command(std::cin);
     }
     return 0;
 }

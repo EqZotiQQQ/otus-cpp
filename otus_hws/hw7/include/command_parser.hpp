@@ -1,6 +1,5 @@
 #pragma once
 
-#include <coroutine>
 #include <fstream>
 #include <iostream>
 #include <thread>
@@ -24,47 +23,7 @@
 
 */
 
-// struct ConsoleInputCorutineFrame {
-//     struct PromiseType {
-//         ConsoleInputCorutineFrame get_return_object() {
-//             return {};
-//         }
-//         std::suspend_never initial_suspend() {
-//             return {};
-//         }
-//         std::suspend_never final_suspend() noexcept {
-//             return {};
-//         }
-//         void return_void() {}
-//         void unhandled_exception() {
-//             std::terminate();
-//         }
-//     };
-
-//     using promise_type = PromiseType;
-
-//     PromiseType promise_object;
-//     std::vector<std::string> commands;
-// };
-
-// ConsoleInputCorutineFrame foo() {
-//     co_return;
-// }
-
 struct CommandLineParser {
-    void parse_command() {
-        std::string command;
-        while (std::getline(std::cin, command) || command == "\n") {
-            command_decision(std::move(command));
-        }
-        if (depth_ == 0) {
-            flush_commands();
-        } else {
-            std::cout << "Faced not closed brackets. Ignoring output" << std::endl;
-        }
-        std::cout << "EOF faced" << std::endl;
-    }
-
     void parse_command(std::istream& input) {
         std::string command;
         while (std::getline(input, command) || command == "\n") {
