@@ -4,6 +4,7 @@
 #include <iomanip>
 #include <iostream>
 #include <optional>
+#include <stdexcept>
 #include <thread>
 #include <vector>
 #include <string>
@@ -94,6 +95,9 @@ private:
             }
             depth_++;
         } else if (command == "}") {
+            if (depth_ == 0) {
+                throw std::runtime_error("You can't type close bracket without typing opening bracket");
+            }
             if (depth_ == 1) {
                 flush_commands();
                 std::cout << "Dynamic block ended\n";
