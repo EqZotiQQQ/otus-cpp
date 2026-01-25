@@ -20,7 +20,7 @@ int main() {
         parser.parse_command(mock_text);
     }
     {
-        std::cout << "\n\n####\n\n";
+        std::cout << "\n\n#### User input sequence has started. CTRL+D to stop recording\n\n";
         CommandLineParser parser;
         parser.parse_command();
     }

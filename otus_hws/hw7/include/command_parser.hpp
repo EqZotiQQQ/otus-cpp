@@ -1,9 +1,16 @@
 #pragma once
 
 #include <coroutine>
+#include <fstream>
 #include <iostream>
+#include <thread>
 #include <vector>
 #include <string>
+#include <chrono>
+#include <ctime>
+#include <iomanip>
+#include <sstream>
+
 
 /**
 
@@ -62,6 +69,7 @@ struct CommandLineParser {
         std::string command;
         while (std::getline(input, command) || command == "\n") {
             command_decision(std::move(command));
+            std::this_thread::sleep_for(std::chrono::seconds(1));
         }
         if (depth_ == 0) {
             flush_commands();
@@ -97,11 +105,41 @@ struct CommandLineParser {
     }
 
     void flush_commands() {
+        std::cout << "Flush commands\n";
+        if (commands_.empty()) {
+            return;
+        }
         stdout_stored_commands();
+        dump_stored_commands_to_files();
         commands_.clear();
     }
 
-    void stdout_stored_commands() {
+    void dump_stored_commands_to_files() const {
+        auto now = std::chrono::system_clock::now();
+        std::time_t t = std::chrono::system_clock::to_time_t(now);
+
+        std::tm tm{};
+        localtime_r(&t, &tm);
+
+        std::ostringstream filename;
+        filename << std::put_time(&tm, "%Y%m%d_%H%M%S") << ".txt";
+
+        std::ofstream file(filename.str());
+
+        if (!file) {
+            throw std::runtime_error("Failed to open file");
+        }
+
+        // file << "Zalupa" << std::endl;
+
+        for (const std::string& line: commands_) {
+            std::cout << "Write line " << line << std::endl;
+            file << line << std::endl;
+        }
+
+    }
+
+    void stdout_stored_commands() const {
         std::cout << "bulk: ";
         for (const auto& command: commands_) {
             std::cout << command << " ";
