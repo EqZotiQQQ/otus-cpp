@@ -28,7 +28,7 @@ struct CommandLineParser {
         std::string command;
         while (std::getline(input, command) || command == "\n") {
             command_decision(std::move(command));
-            std::this_thread::sleep_for(std::chrono::seconds(1));
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
         }
         if (depth_ == 0) {
             flush_commands();
@@ -89,10 +89,7 @@ struct CommandLineParser {
             throw std::runtime_error("Failed to open file");
         }
 
-        // file << "Zalupa" << std::endl;
-
         for (const std::string& line: commands_) {
-            std::cout << "Write line " << line << std::endl;
             file << line << std::endl;
         }
 
