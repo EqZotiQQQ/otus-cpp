@@ -24,6 +24,7 @@ target_include_directories(duplicate_searcher PRIVATE
 target_include_directories(duplicate_searcher_lib PRIVATE 
     "${CMAKE_CURRENT_SOURCE_DIR}/include"
 )
+set(Boost_USE_STATIC_LIBS ON)
 
 find_package(Boost REQUIRED COMPONENTS program_options)
 
