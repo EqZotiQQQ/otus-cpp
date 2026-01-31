@@ -12,10 +12,11 @@
 
 using namespace boost::multi_index;
 
+template <typename T>
 struct Cell {
     int x;
     int y;
-    int value;
+    T value;
 };
 
 
@@ -23,12 +24,13 @@ struct by_x {};
 struct by_y {};
 struct by_xy {};
 
+template<typename T>
 using Matrix = multi_index_container<
-    Cell,
+    Cell<T>,
     indexed_by<
-        ordered_unique<tag<by_xy>, composite_key<Cell, member<Cell, int, &Cell::x>, member<Cell, int, &Cell::y>>>,
-        ordered_non_unique<tag<by_x>, member<Cell, int, &Cell::x>>,
-        ordered_non_unique<tag<by_y>, member<Cell, int, &Cell::y>>
+        ordered_unique<tag<by_xy>, composite_key<Cell<T>, member<Cell<T>, int, &Cell<T>::x>, member<Cell<T>, int, &Cell<T>::y>>>,
+        ordered_non_unique<tag<by_x>, member<Cell<T>, int, &Cell<T>::x>>,
+        ordered_non_unique<tag<by_y>, member<Cell<T>, int, &Cell<T>::y>>
     >
 >;
 
@@ -77,24 +79,26 @@ private:
 };
     
 
+
+template<typename T, int default_value>
 class MatrixImpl: public MatrixInterface {
 public:
-    MatrixImpl(int default_value): default_value_(default_value) {
+    MatrixImpl() {
         spdlog::info("Created matrix with default value {}", default_value);
     }
 
     void insert(int x, int y, int value) override {
-        auto& index = matrix_.get<by_xy>();
+        auto& index = matrix_.template get<by_xy>();
         
         auto it = index.find(std::make_tuple(x, y));
         
-        if (value == default_value_) {
+        if (value == default_value) {
             if (it != index.end()) {
                 index.erase(it);
             }
         } else {
             if (it != index.end()) {
-                index.modify(it, [value](Cell& cell) {
+                index.modify(it, [value](Cell<T>& cell) {
                     cell.value = value;
                 });
             } else {
@@ -104,51 +108,51 @@ public:
     }
 
     int get_value_at(int x, int y) const override {
-        auto& index = matrix_.get<by_xy>();
+        auto& index = matrix_.template get<by_xy>();
         auto it = index.find(std::make_tuple(x, y));
-        return it == index.end() ? default_value_ : it->value;
+        return it == index.end() ? default_value : it->value;
     }
 
     size_t size() const override {
         return matrix_.size();
     }
 
-    using iterator = Matrix::index<by_xy>::type::iterator;
-    using const_iterator = Matrix::index<by_xy>::type::const_iterator;
+    using iterator = Matrix<T>::template index<by_xy>::type::iterator;
+    using const_iterator = Matrix<T>::template index<by_xy>::type::const_iterator;
 
     iterator begin() {
-        return matrix_.get<by_xy>().begin();
+        return matrix_.template get<by_xy>().begin();
     }
 
     iterator end() {
-        return matrix_.get<by_xy>().end();
+        return matrix_.template get<by_xy>().end();
     }
 
     const_iterator begin() const {
-        return matrix_.get<by_xy>().begin();
+        return matrix_.template get<by_xy>().begin();
     }
 
     const_iterator end() const {
-        return matrix_.get<by_xy>().end();
+        return matrix_.template get<by_xy>().end();
     }
 
     const_iterator cbegin() const {
-        return matrix_.get<by_xy>().cbegin();
+        return matrix_.template get<by_xy>().cbegin();
     }
 
     const_iterator cend() const {
-        return matrix_.get<by_xy>().cend();
+        return matrix_.template get<by_xy>().cend();
     }
 
 
 private:
-    Matrix matrix_;
-    int default_value_;
+    Matrix<T> matrix_;
 };
 
+template <typename T, int default_value>
 class MatrixProxy: public MatrixInterface {
 public:
-    MatrixProxy(int default_value): matrix_impl_(default_value) {}
+    MatrixProxy() {}
 
     void insert(int x, int y, int value) override {
         spdlog::info("Trying to add to [{}:{}] value {}", x, y, value);
@@ -166,8 +170,8 @@ public:
     size_t size() const override {
         return matrix_impl_.size();
     }
-    using iterator = MatrixImpl::iterator;
-    using const_iterator = MatrixImpl::const_iterator;
+    using iterator = MatrixImpl<T, default_value>::iterator;
+    using const_iterator = MatrixImpl<T, default_value>::const_iterator;
 
     iterator begin() {
         return matrix_impl_.begin();
@@ -194,7 +198,7 @@ public:
     }
 
 private:
-    MatrixImpl matrix_impl_;
+    MatrixImpl<T, default_value> matrix_impl_;
 };
 
 template <>
