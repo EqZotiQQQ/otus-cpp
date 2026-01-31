@@ -34,9 +34,6 @@ target_link_libraries(duplicate_searcher_lib
 target_compile_options(duplicate_searcher PRIVATE
     -Wall -Wextra -pedantic -Werror
 )
-target_compile_options(duplicate_searcher PRIVATE
-    -Wall -Wextra -pedantic -Werror
-)
 
 # if(WITH_BOOST_TEST)
 #     enable_testing()
