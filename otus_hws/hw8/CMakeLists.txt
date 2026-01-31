@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.28.3)
 set(PATCH_VERSION "1" CACHE INTERNAL "Patch version")
 set(PROJECT_VERSION 0.0.${PATCH_VERSION})
 
-project(duplicate_searcher VERSION ${PROJECT_VERSION})
+project(bayan VERSION ${PROJECT_VERSION})
 
 option(WITH_BOOST_TEST "Whether to build Boost test" ON)
 
@@ -11,28 +11,28 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-add_executable(duplicate_searcher src/main.cpp)
-add_library(duplicate_searcher_lib src/duplicate_searcher.cpp)
-target_link_libraries(duplicate_searcher PRIVATE duplicate_searcher_lib)
+add_executable(bayan src/main.cpp)
+add_library(bayan_lib src/bayan.cpp)
+target_link_libraries(bayan PRIVATE bayan_lib)
 
-message(STATUS "duplicate_searcher will use C++ standard: ${STD}")
+message(STATUS "bayan will use C++ standard: ${STD}")
 
-target_include_directories(duplicate_searcher PRIVATE 
+target_include_directories(bayan PRIVATE 
     "${CMAKE_CURRENT_SOURCE_DIR}/include"
 )
 
-target_include_directories(duplicate_searcher_lib PRIVATE 
+target_include_directories(bayan_lib PRIVATE 
     "${CMAKE_CURRENT_SOURCE_DIR}/include"
 )
 set(Boost_USE_STATIC_LIBS ON)
 
 find_package(Boost REQUIRED COMPONENTS program_options)
 
-target_link_libraries(duplicate_searcher_lib
+target_link_libraries(bayan_lib
     PUBLIC
         Boost::program_options
 )
-target_compile_options(duplicate_searcher PRIVATE
+target_compile_options(bayan PRIVATE
     -Wall -Wextra -pedantic -Werror
 )
 
@@ -41,27 +41,27 @@ target_compile_options(duplicate_searcher PRIVATE
 
 #     find_package(Boost 1.70 REQUIRED COMPONENTS unit_test_framework)
 
-#     add_executable(test_duplicate_searcher tests/test_duplicate_searcher.cpp)
+#     add_executable(test_bayan tests/test_bayan.cpp)
 
 #     target_include_directories(
-#         test_duplicate_searcher
+#         test_bayan
 #         PRIVATE
 #             "${CMAKE_CURRENT_SOURCE_DIR}/include"
 #     )
 
-#     target_link_libraries(test_duplicate_searcher PRIVATE Boost::unit_test_framework duplicate_searcher_lib)
+#     target_link_libraries(test_bayan PRIVATE Boost::unit_test_framework bayan_lib)
 
-#     target_compile_options(test_duplicate_searcher PRIVATE
+#     target_compile_options(test_bayan PRIVATE
 #         -Wall -Wextra -pedantic -Werror
 #     )
 
 #     add_test(
 #         NAME test
-#         COMMAND $<TARGET_FILE:test_duplicate_searcher>
+#         COMMAND $<TARGET_FILE:test_bayan>
 #     )
 # endif()
 
-install(TARGETS duplicate_searcher RUNTIME DESTINATION bin)
+install(TARGETS bayan RUNTIME DESTINATION bin)
 
 set(CPACK_GENERATOR DEB)
 

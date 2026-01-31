@@ -1,4 +1,4 @@
-#include "duplicate_searcher.hpp"
+#include "bayan.hpp"
 
 int main(int argc, char** argv) {
     auto config = parse_cmd_line_arguments(argc, argv);
