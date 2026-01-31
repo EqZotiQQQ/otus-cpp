@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.28.3)
 set(PATCH_VERSION "1" CACHE INTERNAL "Patch version")
 set(PROJECT_VERSION 0.0.${PATCH_VERSION})
 
-project(command_parser VERSION ${PROJECT_VERSION})
+project(bulk VERSION ${PROJECT_VERSION})
 
 option(WITH_BOOST_TEST "Whether to build Boost test" ON)
 
@@ -39,29 +39,29 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 # 
 # FetchContent_MakeAvailable(spdlog)
 # 
-add_executable(command_parser src/main.cpp)
-add_library(command_parser_lib src/command_parser.cpp)
-target_link_libraries(command_parser PRIVATE command_parser_lib)
+add_executable(bulk src/main.cpp)
+add_library(bulk_lib src/bulk.cpp)
+target_link_libraries(bulk PRIVATE bulk_lib)
 # 
-# target_link_libraries(command_parser_lib
+# target_link_libraries(bulk_lib
 #     PUBLIC
 #     spdlog::spdlog
 # )
 
-message(STATUS "command_parser will use C++ standard: ${STD}")
+message(STATUS "bulk will use C++ standard: ${STD}")
 
-target_include_directories(command_parser PRIVATE 
+target_include_directories(bulk PRIVATE 
     "${CMAKE_CURRENT_SOURCE_DIR}/include"
 )
 
-target_include_directories(command_parser_lib PRIVATE 
+target_include_directories(bulk_lib PRIVATE 
     "${CMAKE_CURRENT_SOURCE_DIR}/include"
 )
 
-target_compile_options(command_parser PRIVATE
+target_compile_options(bulk PRIVATE
     -Wall -Wextra -pedantic -Werror
 )
-target_compile_options(command_parser PRIVATE
+target_compile_options(bulk PRIVATE
     -Wall -Wextra -pedantic -Werror
 )
 
@@ -70,27 +70,27 @@ target_compile_options(command_parser PRIVATE
 
 #     find_package(Boost 1.70 REQUIRED COMPONENTS unit_test_framework)
 
-#     add_executable(test_command_parser tests/test_command_parser.cpp)
+#     add_executable(test_bulk tests/test_bulk.cpp)
 
 #     target_include_directories(
-#         test_command_parser
+#         test_bulk
 #         PRIVATE
 #             "${CMAKE_CURRENT_SOURCE_DIR}/include"
 #     )
 
-#     target_link_libraries(test_command_parser PRIVATE Boost::unit_test_framework command_parser_lib)
+#     target_link_libraries(test_bulk PRIVATE Boost::unit_test_framework bulk_lib)
 
-#     target_compile_options(test_command_parser PRIVATE
+#     target_compile_options(test_bulk PRIVATE
 #         -Wall -Wextra -pedantic -Werror
 #     )
 
 #     add_test(
 #         NAME test
-#         COMMAND $<TARGET_FILE:test_command_parser>
+#         COMMAND $<TARGET_FILE:test_bulk>
 #     )
 # endif()
 
-install(TARGETS command_parser RUNTIME DESTINATION bin)
+install(TARGETS bulk RUNTIME DESTINATION bin)
 
 set(CPACK_GENERATOR DEB)
 
