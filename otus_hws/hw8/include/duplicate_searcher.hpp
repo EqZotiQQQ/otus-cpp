@@ -1,6 +1,7 @@
 #pragma once
 
 #include "hasher.hpp"
+#include "file_handler.hpp"
 
 #include <algorithm>
 #include <boost/functional/hash.hpp>
@@ -208,18 +209,20 @@ std::vector<std::vector<fs::path>> get_equal_size_files_groups(const std::vector
     }
 
     std::vector<std::vector<fs::path>> eq_size_groups;
-    for (const auto& [size, files]: size_to_path_mapping) {
+
+    for (auto& [_, files] : size_to_path_mapping) {
         if (files.size() > 1) {
-            eq_size_groups.push_back({});
-            auto& back = eq_size_groups.back();
-            for (const auto& f: files) {
-                back.push_back(f);
-            }
+            eq_size_groups.push_back(std::move(files));
         }
     }
 
     return eq_size_groups;
 }
+
+struct OpenFile {
+    fs::path path;
+    std::ifstream stream;
+};
 
 auto get_duplicated_files(const std::vector<fs::path>& files, const Config& config) {
     std::vector<std::vector<fs::path>> result;
@@ -227,6 +230,7 @@ auto get_duplicated_files(const std::vector<fs::path>& files, const Config& conf
     auto eq_size_groups = get_equal_size_files_groups(files);
 
     std::vector<char> buffer(config.block_size);
+    FilePool file_pool;
 
     for (const auto& initial_group : eq_size_groups) {
         if (initial_group.size() < 2) {
@@ -248,27 +252,17 @@ auto get_duplicated_files(const std::vector<fs::path>& files, const Config& conf
 
                 std::unordered_map<std::string, std::vector<fs::path>> by_hash;
 
-                for (const auto& f : group) {
-                    std::ifstream file(f, std::ios::binary);
-                    if (!file) {
-                        throw std::runtime_error(
-                            std::format("Failed to open file {}. Aborting...", f.string()));
-                    }
+                for (const auto& path : group) {
+                    auto& fh = file_pool.get(path);
 
-                    std::uintmax_t offset = block_index * config.block_size;
-                    file.seekg(static_cast<std::streamoff>(offset), std::ios::beg);
-                    if (!file) {
-                        continue;
-                    }
-
-                    file.read(buffer.data(), buffer.size());
-                    std::streamsize read_bytes = file.gcount();
+                    fh.seek_block(block_index, config.block_size);
+                    auto read_bytes = fh.read_block(buffer.data(), buffer.size());
                     if (read_bytes <= 0) {
                         continue;
                     }
 
                     std::string hash = config.hash.hash_impl->hash(buffer.data(), static_cast<size_t>(read_bytes));
-                    by_hash[hash].push_back(f);
+                    by_hash[hash].push_back(path);
                 }
 
                 for (auto& [hash, same_hash_files] : by_hash) {
@@ -283,7 +277,7 @@ auto get_duplicated_files(const std::vector<fs::path>& files, const Config& conf
             }
 
             const auto file_size = fs::file_size(next_round_groups.front().front());
-            std::uintmax_t next_offset = (block_index + 1) * config.block_size; // check eof
+            std::uintmax_t next_offset = (block_index + 1) * config.block_size;
 
             if (next_offset >= file_size) {
                 for (auto& g : next_round_groups) {
@@ -299,6 +293,7 @@ auto get_duplicated_files(const std::vector<fs::path>& files, const Config& conf
 
     return result;
 }
+
 
 void print_dups(const std::vector<std::vector<fs::path>>& dup_groups) {
     for (const auto& group: dup_groups) {
