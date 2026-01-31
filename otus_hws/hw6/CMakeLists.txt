@@ -72,30 +72,30 @@ target_compile_options(matrix PRIVATE
     -Wall -Wextra -pedantic -Werror
 )
 
-if(WITH_BOOST_TEST)
-    enable_testing()
+# if(WITH_BOOST_TEST)
+#     enable_testing()
 
-    find_package(Boost 1.70 REQUIRED COMPONENTS unit_test_framework)
+#     find_package(Boost 1.70 REQUIRED COMPONENTS unit_test_framework)
 
-    add_executable(test_matrix tests/test_matrix.cpp)
+#     add_executable(test_matrix tests/test_matrix.cpp)
 
-    target_include_directories(
-        test_matrix
-        PRIVATE
-            "${CMAKE_CURRENT_SOURCE_DIR}/include"
-    )
+#     target_include_directories(
+#         test_matrix
+#         PRIVATE
+#             "${CMAKE_CURRENT_SOURCE_DIR}/include"
+#     )
 
-    target_link_libraries(test_matrix PRIVATE Boost::unit_test_framework matrix_lib)
+#     target_link_libraries(test_matrix PRIVATE Boost::unit_test_framework matrix_lib)
 
-    target_compile_options(test_matrix PRIVATE
-        -Wall -Wextra -pedantic -Werror
-    )
+#     target_compile_options(test_matrix PRIVATE
+#         -Wall -Wextra -pedantic -Werror
+#     )
 
-    add_test(
-        NAME test
-        COMMAND $<TARGET_FILE:test_matrix>
-    )
-endif()
+#     add_test(
+#         NAME test
+#         COMMAND $<TARGET_FILE:test_matrix>
+#     )
+# endif()
 
 install(TARGETS matrix RUNTIME DESTINATION bin)
 

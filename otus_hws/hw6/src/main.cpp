@@ -12,7 +12,7 @@
 
 int main() {
     {    
-        MatrixProxy<int, -1> matrix;
+        MatrixProxy matrix{-1};
         
         spdlog::info("Matrix size at the start: {}", matrix.size());
 
@@ -40,7 +40,7 @@ int main() {
         assert(matrix.size() == 2);
     }
     {
-        MatrixProxy<int, 0> matrix;
+        MatrixProxy matrix{0};
         for (int i = 0; i < 10; i++) {
             int reverse_value = 9 - i;
             matrix[i][i] = i;
