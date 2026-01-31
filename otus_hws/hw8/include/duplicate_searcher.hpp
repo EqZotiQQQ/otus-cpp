@@ -1,5 +1,6 @@
 #pragma once
 
+#include "hasher.hpp"
 
 #include <algorithm>
 #include <boost/functional/hash.hpp>
@@ -23,8 +24,14 @@ namespace fs = std::filesystem;
 constexpr auto DEFAULT_BLOCK_SIZE = 4096;
 constexpr auto DEFAULT_HASH_ALGORITHM = "md5";
 
-enum class Hash {
+enum class AvailableHashAlgos {
     MD5=0,
+};
+
+
+struct Hash {
+    AvailableHashAlgos algo;
+    std::shared_ptr<IBlockHasher> hash_impl;
 };
 
 struct Config {
@@ -37,12 +44,13 @@ struct Config {
     Hash hash;
 };
 
-inline const char* to_string(Hash h) {
+inline const char* to_string(AvailableHashAlgos h) {
     switch (h) {
-        case Hash::MD5:    return "MD5";
+        case AvailableHashAlgos::MD5:    return "MD5";
         default:           return "Unknown";
     }
 }
+
 
 void print_config(const Config& cfg, std::ostream& os = std::cout) {
     os << "Config {\n";
@@ -69,7 +77,7 @@ void print_config(const Config& cfg, std::ostream& os = std::cout) {
     }
     os << "  ]\n";
 
-    os << "  hash: " << to_string(cfg.hash) << "\n";
+    os << "  hash: " << to_string(cfg.hash.algo) << "\n";
     os << "}\n";
 }
 
@@ -113,15 +121,14 @@ std::optional<Config> parse_cmd_line_arguments(int argc, char** argv) {
 
         if (vm.contains("exclude")) {
             for (const auto& p_str: vm["exclude"].as<std::vector<std::string>>()) {
-                auto p = fs::path(p_str);
-                file_exists_check(p);
-                config.exclude_paths.push_back(p);
+                config.exclude_paths.push_back(p_str);
             }
         }
 
         if (vm.contains("i")) {
-            for (const auto& p: vm["i"].as<std::vector<std::string>>()) {
-                config.case_insensetive_masks.push_back(p);
+            for (std::string mask: vm["i"].as<std::vector<std::string>>()) {
+                std::transform(mask.begin(), mask.end(), mask.begin(), [](unsigned char c){ return std::tolower(c); });
+                config.case_insensetive_masks.push_back(mask);
             }
         }
 
@@ -130,7 +137,8 @@ std::optional<Config> parse_cmd_line_arguments(int argc, char** argv) {
         config.max_depth = vm["depth"].as<size_t>();
 
         if (vm["hash"].as<std::string>() == DEFAULT_HASH_ALGORITHM) {
-            config.hash = Hash::MD5;
+            auto hasher = std::make_shared<Md5Hasher>();
+            config.hash = Hash{AvailableHashAlgos::MD5, hasher};
         } else {
             throw std::runtime_error("Selected unsupported hash. Available hash funcs: md5");
         }
@@ -144,6 +152,11 @@ std::vector<fs::path> collect_dir_content(const fs::path& dir, const Config& con
     std::cout << "Searching here... " << dir.c_str() << std::endl;
     std::vector<fs::path> subdir_paths;
     for (const auto& dir_object: fs::directory_iterator(dir)) {
+        if (std::any_of(config.exclude_paths.begin(), config.exclude_paths.end(), [&dir_object](const std::string& exclude_item){return dir_object.path().string().contains(exclude_item);})) {
+            // filtered out by excluede path
+            continue;
+        }
+
         if (std::filesystem::is_directory(dir_object) && current_depth != config.max_depth) {
             std::vector<fs::path> paths = collect_dir_content(dir_object, config, current_depth + 1);
             #ifdef __cpp_lib_containers_ranges
@@ -152,10 +165,18 @@ std::vector<fs::path> collect_dir_content(const fs::path& dir, const Config& con
             subdir_paths.insert(subdir_paths.end(), paths.cbegin(), paths.cend());
             #endif
         } else {
-            std::string file_name = dir_object.path().stem().string();
             std::string file_extension = dir_object.path().extension().string();
             std::transform(file_extension.begin(), file_extension.end(), file_extension.begin(), [](unsigned char c){ return std::tolower(c); });
-            if (std::any_of(config.case_insensetive_masks.begin(), config.case_insensetive_masks.end(), [&file_extension](const std::string& mask){return file_extension.contains(mask);}) && fs::file_size(dir_object) > config.min_size) {
+            if (
+                std::any_of(config.case_insensetive_masks.begin(), config.case_insensetive_masks.end(), 
+                [&file_extension](
+                    const std::string& mask
+                ){
+                    return file_extension.contains(mask);
+                }) 
+                && fs::file_size(dir_object) > config.min_size
+            ) {
+                // mask and size ok
                 subdir_paths.push_back(dir_object);
             }
         }
@@ -198,29 +219,6 @@ std::vector<std::vector<fs::path>> get_equal_size_files_groups(const std::vector
     }
 
     return eq_size_groups;
-}
-
-/**
-
-map:
-block_hash -> count
-file -> block_hash
-
-*/
-
-std::string md5_of_buffer(const char* data, size_t size) {
-    boost::uuids::detail::md5 md5;
-    boost::uuids::detail::md5::digest_type digest;
-
-    md5.process_bytes(data, size);
-    md5.get_digest(digest);
-
-    const auto* bytes = reinterpret_cast<const unsigned char*>(&digest);
-
-    std::string result;
-    result.reserve(32);
-    boost::algorithm::hex(bytes, bytes + sizeof(digest), std::back_inserter(result));
-    return result;
 }
 
 auto get_duplicated_files(const std::vector<fs::path>& files, const Config& config) {
@@ -269,8 +267,7 @@ auto get_duplicated_files(const std::vector<fs::path>& files, const Config& conf
                         continue;
                     }
 
-                    std::string hash =
-                        md5_of_buffer(buffer.data(), static_cast<size_t>(read_bytes));
+                    std::string hash = config.hash.hash_impl->hash(buffer.data(), static_cast<size_t>(read_bytes));
                     by_hash[hash].push_back(f);
                 }
 
