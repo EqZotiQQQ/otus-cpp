@@ -65,30 +65,24 @@ target_compile_options(bulk PRIVATE
     -Wall -Wextra -pedantic -Werror
 )
 
-# if(WITH_BOOST_TEST)
-#     enable_testing()
-
-#     find_package(Boost 1.70 REQUIRED COMPONENTS unit_test_framework)
-
-#     add_executable(test_bulk tests/test_bulk.cpp)
-
-#     target_include_directories(
-#         test_bulk
-#         PRIVATE
-#             "${CMAKE_CURRENT_SOURCE_DIR}/include"
-#     )
-
-#     target_link_libraries(test_bulk PRIVATE Boost::unit_test_framework bulk_lib)
-
-#     target_compile_options(test_bulk PRIVATE
-#         -Wall -Wextra -pedantic -Werror
-#     )
-
-#     add_test(
-#         NAME test
-#         COMMAND $<TARGET_FILE:test_bulk>
-#     )
-# endif()
+ if(WITH_BOOST_TEST)
+     enable_testing()
+     find_package(Boost 1.70 REQUIRED COMPONENTS unit_test_framework)
+     add_executable(test_bulk tests/test_bulk.cpp)
+     target_include_directories(
+         test_bulk
+         PRIVATE
+             "${CMAKE_CURRENT_SOURCE_DIR}/include"
+     )
+     target_link_libraries(test_bulk PRIVATE Boost::unit_test_framework bulk_lib)
+     target_compile_options(test_bulk PRIVATE
+         -Wall -Wextra -pedantic -Werror
+     )
+     add_test(
+         NAME test
+         COMMAND $<TARGET_FILE:test_bulk>
+     )
+ endif()
 
 install(TARGETS bulk RUNTIME DESTINATION bin)
 

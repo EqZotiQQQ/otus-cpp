@@ -94,12 +94,12 @@ Generator<std::string> read_commands(std::istream& input) {
 class IBulkSink {
 public:
     virtual ~IBulkSink() = default;
-    virtual void flush(size_t stamp_ms, const std::vector<std::string>& commands) const = 0;
+    virtual void flush(size_t stamp_ms, const std::vector<std::string>& commands) = 0;
 };
 
 class FileBulkSink: public IBulkSink {
 public:
-    void flush(size_t stamp_ms, const std::vector<std::string>& commands) const override {
+    void flush(size_t stamp_ms, const std::vector<std::string>& commands) override {
         std::ofstream file(std::to_string(stamp_ms) + ".txt");
         for (auto& c : commands) {
             file << c << "\n";
@@ -109,16 +109,33 @@ public:
 
 class ConsoleBulkSink: public IBulkSink {
 public:
-    void flush(size_t, const std::vector<std::string>& commands) const override {
+    void flush(size_t, const std::vector<std::string>& commands) override {
         std::cout << "bulk: ";
         for (auto& c : commands) std::cout << c << " ";
         std::cout << "\n";
     }
 };
 
+class CaptureSink : public IBulkSink {
+public:
+    void flush(size_t, const std::vector<std::string>& commands) override {
+        std::vector<std::string> bulk;
+        for (auto& c : commands) {
+            bulk.push_back(c);
+        }
+        buffer_.push_back(std::move(bulk));
+    }
+
+    auto buffers() const {
+        return buffer_;
+    }
+private:
+    std::vector<std::vector<std::string>> buffer_;
+};
+
 class CommandLineParser1 {
 public:
-    CommandLineParser1(size_t bulk_size, std::vector<std::unique_ptr<IBulkSink>>&& sinks): max_bulk_size_(bulk_size), sinks_(std::move(sinks)) {
+    CommandLineParser1(size_t bulk_size, std::vector<std::shared_ptr<IBulkSink>>&& sinks): max_bulk_size_(bulk_size), sinks_(std::move(sinks)) {
         commands_.reserve(bulk_size);
     }
 
@@ -183,15 +200,10 @@ private:
     int64_t first_bulk_command_stamp_ms_{};
     int depth_ = 0;
     std::vector<std::string> commands_;
-    std::vector<std::unique_ptr<IBulkSink>> sinks_;
+    std::vector<std::shared_ptr<IBulkSink>> sinks_;
 };
 
-void parse_stream(std::istream& input, size_t bulk_size) {
-    std::vector<std::unique_ptr<IBulkSink>> sinks;
-    sinks.emplace_back(std::make_unique<FileBulkSink>());
-    sinks.emplace_back(std::make_unique<ConsoleBulkSink>());
-    // ...
-
+void parse_stream(std::istream& input, size_t bulk_size, std::vector<std::shared_ptr<IBulkSink>>&& sinks) {
     CommandLineParser1 parser(bulk_size, std::move(sinks));
 
     Generator<std::string> gen = read_commands(input);

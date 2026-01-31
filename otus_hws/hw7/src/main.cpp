@@ -33,27 +33,42 @@ int main(int argc, char** argv) {
     //     parser.parse_command(std::cin);
     // }
 
-
     { 
+        std::vector<std::shared_ptr<IBulkSink>> sinks;
+        sinks.emplace_back(std::make_shared<FileBulkSink>());
+        sinks.emplace_back(std::make_shared<ConsoleBulkSink>());
+        // ...
         std::stringstream mock_text;
         mock_text << "cmd1\ncmd2\ncmd3\ncmd4\ncmd5\n";
-        parse_stream(mock_text, n);
+        parse_stream(mock_text, n, std::move(sinks));
     }
     {
+        std::vector<std::shared_ptr<IBulkSink>> sinks;
+        sinks.emplace_back(std::make_shared<FileBulkSink>());
+        sinks.emplace_back(std::make_shared<ConsoleBulkSink>());
+        // ...
         std::cout << "\n\n####\n\n";
         std::stringstream mock_text;
         mock_text << "cmd1\ncmd2\n{\ncmd3\ncmd4\n}\n{\ncmd5\ncmd6\n{\ncmd7\ncmd8\n}\ncmd9\n}\n{\ncmd10\ncmd11\n";
-        parse_stream(mock_text, n);
+        parse_stream(mock_text, n, std::move(sinks));
     }
     {
+        std::vector<std::shared_ptr<IBulkSink>> sinks;
+        sinks.emplace_back(std::make_shared<FileBulkSink>());
+        sinks.emplace_back(std::make_shared<ConsoleBulkSink>());
+        // ...
         std::cout << "\n\n####\n\n";
         std::stringstream mock_text;
         mock_text << "cmd1\ncmd2\n{\ncmd3\ncmd4\n}\n{\ncmd5\ncmd6\n{\ncmd7\ncmd8\n}\ncmd9\n}\n{\ncmd10\ncmd11\n}\n";
-        parse_stream(mock_text, n);
+        parse_stream(mock_text, n, std::move(sinks));
     }
     {
+        std::vector<std::shared_ptr<IBulkSink>> sinks;
+        sinks.emplace_back(std::make_shared<FileBulkSink>());
+        sinks.emplace_back(std::make_shared<ConsoleBulkSink>());
+        // ...
         std::cout << "\n\n#### User input sequence has started. CTRL+D to stop recording\n\n";
-        parse_stream(std::cin, n);
+        parse_stream(std::cin, n, std::move(sinks));
     }
 
     return 0;
