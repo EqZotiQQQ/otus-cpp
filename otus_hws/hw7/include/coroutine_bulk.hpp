@@ -133,9 +133,9 @@ private:
     std::vector<std::vector<std::string>> buffer_;
 };
 
-class CommandLineParser1 {
+class AsyncCommandParser {
 public:
-    CommandLineParser1(size_t bulk_size, std::vector<std::shared_ptr<IBulkSink>>&& sinks): max_bulk_size_(bulk_size), sinks_(std::move(sinks)) {
+    AsyncCommandParser(size_t bulk_size, std::vector<std::shared_ptr<IBulkSink>>&& sinks): max_bulk_size_(bulk_size), sinks_(std::move(sinks)) {
         commands_.reserve(bulk_size);
     }
 
@@ -204,7 +204,7 @@ private:
 };
 
 void parse_stream(std::istream& input, size_t bulk_size, std::vector<std::shared_ptr<IBulkSink>>&& sinks) {
-    CommandLineParser1 parser(bulk_size, std::move(sinks));
+    AsyncCommandParser parser(bulk_size, std::move(sinks));
 
     Generator<std::string> gen = read_commands(input);
 

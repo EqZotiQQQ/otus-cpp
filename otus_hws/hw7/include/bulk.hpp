@@ -23,7 +23,7 @@
 
 */
 
-struct CommandLineParser {
+struct CommandParser {
     void parse_command(std::istream& input) {
         std::string command;
         while (std::getline(input, command) || command == "\n") {
