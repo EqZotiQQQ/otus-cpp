@@ -12,6 +12,8 @@ all:
 	@mkdir -p $(BUILD_DIR)
 	$(CMAKE) -DPATCH_VERSION=42 -DWITH_BOOST_TEST=ON -DCMAKE_BUILD_TYPE=Debug -B $(BUILD_DIR)
 	$(CMAKE) --build $(BUILD_DIR)
+# 	$(CMAKE) --install build --prefix /tmp/async_install_test
+# 	cpack -G DEB
 
 clean:
 	@echo "Cleaning build directory..."
