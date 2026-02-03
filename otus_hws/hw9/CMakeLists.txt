@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.28.3)
 
-# Не устанавливайте версию здесь - используйте версию из корневого проекта
 project(async)
 
 option(WITH_BOOST_TEST "Whether to build Boost test" ON)

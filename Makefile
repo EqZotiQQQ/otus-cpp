@@ -14,6 +14,7 @@ all:
 	$(CMAKE) --build $(BUILD_DIR)
 # 	$(CMAKE) --install build --prefix /tmp/async_install_test
 # 	cpack -G DEB
+	cpack --config build/CPackConfig.cmake -G DEB
 
 clean:
 	@echo "Cleaning build directory..."
