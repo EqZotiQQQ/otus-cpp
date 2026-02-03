@@ -57,11 +57,11 @@ install(TARGETS async async_lib
 install(FILES include/async.hpp DESTINATION include)
 
 set(CPACK_PACKAGE_NAME "otus_hws")
-set(CPACK_PACKAGE_DESCRIPTION "Async library and executable")
-set(CPACK_PACKAGE_CONTACT "your.email@example.com")
-set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Your Name")
-set(CPACK_DEBIAN_PACKAGE_SECTION "libs") # можно 'utils', если основной бинарник
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.27)") # пример, зависимости
+set(CPACK_PACKAGE_DESCRIPTION "Async bulker")
+set(CPACK_PACKAGE_CONTACT "mf_52@mail.com")
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "EqZotiQQQ")
+set(CPACK_DEBIAN_PACKAGE_SECTION "libs")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.27)")
 
 set(CPACK_GENERATOR DEB)
 
