@@ -56,7 +56,7 @@ install(TARGETS async async_lib
 
 install(FILES include/async.hpp DESTINATION include)
 
-set(CPACK_PACKAGE_NAME "async_package")
+set(CPACK_PACKAGE_NAME "otus_hws")
 set(CPACK_PACKAGE_DESCRIPTION "Async library and executable")
 set(CPACK_PACKAGE_CONTACT "your.email@example.com")
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Your Name")
