@@ -16,6 +16,7 @@ set(CPACK_PACKAGE_VERSION_PATCH "${PROJECT_VERSION_PATCH}")
 # Debian требует maintainer
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Your Name <you@example.com>")
 
+include(CPack)
 include(CTest)
 
 # include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libs)
