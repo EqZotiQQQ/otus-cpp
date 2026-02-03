@@ -54,7 +54,7 @@ install(TARGETS async async_lib
     ARCHIVE DESTINATION lib
 )
 
-install(FILES include/async_lib.h DESTINATION include)
+install(FILES include/async.h DESTINATION include)
 
 set(CPACK_PACKAGE_NAME "async_package")
 set(CPACK_PACKAGE_DESCRIPTION "Async library and executable")
