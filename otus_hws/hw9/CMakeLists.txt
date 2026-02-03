@@ -54,6 +54,14 @@ install(TARGETS async async_lib
     ARCHIVE DESTINATION lib
 )
 
+install(FILES include/async_lib.h DESTINATION include)
+
+set(CPACK_PACKAGE_NAME "async_package")
+set(CPACK_PACKAGE_DESCRIPTION "Async library and executable")
+set(CPACK_PACKAGE_CONTACT "your.email@example.com")
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Your Name")
+set(CPACK_DEBIAN_PACKAGE_SECTION "libs") # можно 'utils', если основной бинарник
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.27)") # пример, зависимости
 
 set(CPACK_GENERATOR DEB)
 
