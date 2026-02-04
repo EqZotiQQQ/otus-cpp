@@ -1,11 +1,11 @@
 # Использование
 ```
-./duplicate_finder --include <paths...> [options]
+./bayan --include <paths...> [options]
 ```
 
 # Пример:
 ```
-./duplicate_finder \
+./bayan \
   --include otus_hws/hw8/assets \
   --depth 42 \
   --min-size 1 \
@@ -13,6 +13,10 @@
   --i ".txt" ".log" \ 
   --hash md5 \
   --exclude exclude_dir
+```
+или коротко:
+```
+./bayan --include otus_hws/hw8/assets --depth 42 --min-size 1 --block-size 3 --i ".txt" ".log" --hash md5 --exclude exclude_dir
 ```
 
 

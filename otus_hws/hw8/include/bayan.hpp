@@ -16,9 +16,11 @@
 #include <vector>
 #include <string>
 #include <ranges>
-#include <format>
+#include <fmt/format.h>
+#include <fmt/ranges.h>
+#include <fmt/std.h>
 
-// bad styleguide but keep it as is 
+// bad styleguide to make it in header but keep it as is 
 namespace po = boost::program_options;
 namespace fs = std::filesystem;
 
@@ -45,42 +47,71 @@ struct Config {
     Hash hash;
 };
 
+struct OpenFile {
+    fs::path path;
+    std::ifstream stream;
+};
+
+template <>
+struct fmt::formatter<Hash> {
+    constexpr auto parse(format_parse_context& ctx) {
+        return ctx.begin();
+    }
+
+    template <typename FormatContext>
+    auto format(const Hash& h, FormatContext& ctx) const {
+        return fmt::format_to(
+            ctx.out(),
+            "Hash {{ algo: {}}}",
+            h.algo
+        );
+    }
+};
+
 inline const char* to_string(AvailableHashAlgos h) {
     switch (h) {
         case AvailableHashAlgos::MD5:    return "MD5";
-        default:           return "Unknown";
+        default:                         return "Unknown";
     }
 }
 
-
-void print_config(const Config& cfg, std::ostream& os = std::cout) {
-    os << "Config {\n";
-
-    os << "  include_paths: [\n";
-    for (const auto& p : cfg.include_paths) {
-        os << "    \"" << p.string() << "\",\n";
+template <>
+struct fmt::formatter<AvailableHashAlgos> : fmt::formatter<std::string_view> {
+    auto format(AvailableHashAlgos algo, format_context& ctx) const {
+        return fmt::formatter<std::string_view>::format(to_string(algo), ctx);
     }
-    os << "  ]\n";
+};
 
-    os << "  exclude_paths: [\n";
-    for (const auto& p : cfg.exclude_paths) {
-        os << "    \"" << p.string() << "\",\n";
+template <>
+struct fmt::formatter<Config> {
+    constexpr auto parse(fmt::format_parse_context& ctx) {
+        return ctx.begin();
     }
-    os << "  ]\n";
 
-    os << "  max_depth: " << cfg.max_depth << "\n";
-    os << "  min_size: " << cfg.min_size << "\n";
-    os << "  block_size: " << cfg.block_size << "\n";
-
-    os << "  case_insensetive_masks: [\n";
-    for (const auto& m : cfg.case_insensetive_masks) {
-        os << "    \"" << m << "\",\n";
+    template <typename FormatContext>
+    auto format(const Config& cfg, FormatContext& ctx) const {
+        return fmt::format_to(
+            ctx.out(),
+            "Config {{\n"
+            "  include_paths: [{}]\n"
+            "  exclude_paths: [{}]\n"
+            "  max_depth: {}\n"
+            "  min_size: {}\n"
+            "  block_size: {}\n"
+            "  case_insensetive_masks: [{}]\n"
+            "  hash: {}\n"
+            "}}",
+            fmt::join(cfg.include_paths, ", "),
+            fmt::join(cfg.exclude_paths, ", "),
+            cfg.max_depth,
+            cfg.min_size,
+            cfg.block_size,
+            fmt::join(cfg.case_insensetive_masks, ", "),
+            cfg.hash
+        );
     }
-    os << "  ]\n";
+};
 
-    os << "  hash: " << to_string(cfg.hash.algo) << "\n";
-    os << "}\n";
-}
 
 std::optional<Config> parse_cmd_line_arguments(int argc, char** argv) {
     po::options_description desc("Allowed options");
@@ -98,9 +129,9 @@ std::optional<Config> parse_cmd_line_arguments(int argc, char** argv) {
     po::variables_map vm;
     po::store(po::parse_command_line(argc, argv, desc), vm);
     po::notify(vm); 
-
-    auto print_help = []{
-        std::cout << "Help msg" << std::endl;
+    std::cout << desc << std::endl;
+    auto print_help = [desc]{
+        std::cout << desc << std::endl;
     };
 
     if (vm.contains("help")) {
@@ -160,11 +191,7 @@ std::vector<fs::path> collect_dir_content(const fs::path& dir, const Config& con
 
         if (std::filesystem::is_directory(dir_object) && current_depth != config.max_depth) {
             std::vector<fs::path> paths = collect_dir_content(dir_object, config, current_depth + 1);
-            #ifdef __cpp_lib_containers_ranges
-            paths.append_range(subpaths);
-            #else
             subdir_paths.insert(subdir_paths.end(), paths.cbegin(), paths.cend());
-            #endif
         } else {
             std::string file_extension = dir_object.path().extension().string();
             std::transform(file_extension.begin(), file_extension.end(), file_extension.begin(), [](unsigned char c){ return std::tolower(c); });
@@ -218,11 +245,6 @@ std::vector<std::vector<fs::path>> get_equal_size_files_groups(const std::vector
 
     return eq_size_groups;
 }
-
-struct OpenFile {
-    fs::path path;
-    std::ifstream stream;
-};
 
 auto get_duplicated_files(const std::vector<fs::path>& files, const Config& config) {
     std::vector<std::vector<fs::path>> result;

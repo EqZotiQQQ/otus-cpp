@@ -49,11 +49,6 @@ target_link_libraries(matrix_lib
     spdlog::spdlog
 )
 
-target_link_libraries(matrix_lib
-    PUBLIC
-    spdlog::spdlog
-)
-
 
 message(STATUS "matrix will use C++ standard: ${STD}")
 

@@ -80,7 +80,7 @@ int main() {
 
     std::cout << "Third block" << std::endl;
     {
-        auto chunks1 = make_big_input('A', 10000, 50); // 50 команд в чанке
+        auto chunks1 = make_big_input('A', 10000, 50);
         auto chunks2 = make_big_input('B', 12000, 40);
         auto chunks3 = make_big_input('C', 8000,  25);
         auto chunks4 = make_big_input('D', 15000, 60);

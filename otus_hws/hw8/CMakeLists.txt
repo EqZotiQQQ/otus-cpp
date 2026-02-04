@@ -11,11 +11,21 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
+include(FetchContent)
+
+FetchContent_Declare(
+    fmt
+    GIT_REPOSITORY https://github.com/fmtlib/fmt.git
+    GIT_TAG 12.1.0
+)
+
+FetchContent_MakeAvailable(fmt)
+
 add_executable(bayan src/main.cpp)
 add_library(bayan_lib src/bayan.cpp)
 target_link_libraries(bayan PRIVATE bayan_lib)
 
-message(STATUS "bayan will use C++ standard: ${STD}")
+message(STATUS "bayan will use C++ standard: ${CMAKE_CXX_STANDARD}")
 
 target_include_directories(bayan PRIVATE 
     "${CMAKE_CURRENT_SOURCE_DIR}/include"
@@ -34,6 +44,11 @@ target_link_libraries(bayan_lib
 )
 target_compile_options(bayan PRIVATE
     -Wall -Wextra -pedantic -Werror
+)
+
+target_link_libraries(bayan_lib
+    PUBLIC
+        fmt::fmt
 )
 
 # if(WITH_BOOST_TEST)
