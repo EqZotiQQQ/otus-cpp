@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cstddef>
-#include <functional>
 
 #include "parser.hpp"
 #include "manager.hpp"

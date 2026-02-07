@@ -1,14 +1,11 @@
 #pragma once
 
-#include "sinks.hpp"
 #include "manager.hpp"
 #include "utils.hpp"
 
 #include <chrono>
 #include <cstdint>
-#include <memory>
 #include <vector>
-#include <format>
 
 class Parser {
 public:
