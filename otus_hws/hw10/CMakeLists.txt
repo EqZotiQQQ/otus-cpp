@@ -41,7 +41,7 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(spdlog)
 
-add_library(async_lib SHARED src/manager.cpp)
+add_library(async_lib STATIC src/manager.cpp)
 target_link_libraries(async_lib PUBLIC Boost::system Boost::thread Boost::program_options spdlog::spdlog)
 
 add_executable(bulk_client src/bulk_client.cpp)
