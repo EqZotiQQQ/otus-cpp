@@ -5,9 +5,13 @@ MAKE_CMD := $(MAKE)
 DOCKER_IMAGE_NAME := otus_docker
 CONTAINER_NAME := otus_container
 
-.PHONY: all clean run doxygen s r up a b
+.PHONY: all allc clean run doxygen s r up a b
 
 all:
+	$(CMAKE) -DPATCH_VERSION=42 -DWITH_BOOST_TEST=ON -DCMAKE_BUILD_TYPE=Debug -B $(BUILD_DIR)
+	$(CMAKE) --build $(BUILD_DIR)
+
+allc:
 	$(MAKE) clean
 	@mkdir -p $(BUILD_DIR)
 	$(CMAKE) -DPATCH_VERSION=42 -DWITH_BOOST_TEST=ON -DCMAKE_BUILD_TYPE=Debug -B $(BUILD_DIR)
