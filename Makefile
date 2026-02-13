@@ -35,6 +35,7 @@ r:
 	docker run -d --name $(CONTAINER_NAME) \
 	  -v $(HOME)/my_projects/otus-cpp:/app \
 	  -v $(HOME)/.vscode/extensions:/root/.vscode-server/extensions \
+	  --network otus-cpp_chatnet \
 	  $(DOCKER_IMAGE_NAME) tail -f /dev/null
 
 up:
@@ -44,4 +45,4 @@ a:
 	docker attach $(CONTAINER_NAME)
 
 b:
-	docker build -t $(DOCKER_IMAGE_NAME) .
+	docker build -f docker/Dockerfile.dev -t $(DOCKER_IMAGE_NAME) .
