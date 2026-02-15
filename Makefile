@@ -5,7 +5,7 @@ MAKE_CMD := $(MAKE)
 DOCKER_IMAGE_NAME := otus_docker
 CONTAINER_NAME := otus_container
 
-.PHONY: all allc clean run doxygen s r up a b
+.PHONY: all allc clean run doxygen s r up a b rm
 
 all:
 	$(CMAKE) -DPATCH_VERSION=42 -DWITH_BOOST_TEST=ON -DCMAKE_BUILD_TYPE=Debug -B $(BUILD_DIR)
@@ -31,12 +31,14 @@ doxygen:
 s:
 	docker stop $(CONTAINER_NAME)
 
+rm:
+	docker rm $(CONTAINER_NAME)
 r:
 	docker run -d --name $(CONTAINER_NAME) \
-	  -v $(HOME)/my_projects/otus-cpp:/app \
+	  -v $(HOME)/m/otus-cpp:/app \
 	  -v $(HOME)/.vscode/extensions:/root/.vscode-server/extensions \
-	  --network otus-cpp_chatnet \
 	  $(DOCKER_IMAGE_NAME) tail -f /dev/null
+# 	  --network otus-cpp_chatnet \
 
 up:
 	docker start $(CONTAINER_NAME)

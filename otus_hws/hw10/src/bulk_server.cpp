@@ -58,10 +58,9 @@ Options parse_options(int argc, char* argv[]) {
 
 class Session : public std::enable_shared_from_this<Session> {
 public:
-    explicit Session(tcp::socket socket, size_t block_size)
+    explicit Session(tcp::socket socket, void* context)
         : socket_(std::move(socket)),
-          id_(boost::uuids::random_generator()()),
-          context_(bulk_parser::connect(block_size)) {
+          id_(boost::uuids::random_generator()()), context_(context) {
         spdlog::info("Created session {}", boost::uuids::to_string(id_));
     }
 
@@ -102,7 +101,7 @@ private:
 class Server {
 public:
     Server(asio::io_context& io_context, const Options& options)
-        : acceptor_(io_context, tcp::endpoint(options.ip_addr, options.port)), options_(options) {
+        : acceptor_(io_context, tcp::endpoint(options.ip_addr, options.port)), options_(options), context_(bulk_parser::connect(options_.bulk_size)) {
         do_accept();
     }
 
@@ -113,7 +112,7 @@ private:
             [this](std::error_code ec, tcp::socket socket) {
                 if (!ec) {
                     spdlog::info("Got new connection {}", socket.remote_endpoint().address().to_string());
-                    std::make_shared<Session>(std::move(socket), options_.bulk_size)->start();
+                    std::make_shared<Session>(std::move(socket), context_)->start();
                 } else {
                     spdlog::error("Accept error {}", ec.message());
                 }
@@ -123,6 +122,7 @@ private:
 
     tcp::acceptor acceptor_;
     Options options_;
+    void* context_;
 };
 
 } // server
