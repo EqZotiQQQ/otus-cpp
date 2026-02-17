@@ -20,12 +20,8 @@ struct Options {
     uint8_t log_level;
 };
 
-
-// Forward declarations
 class Session;
 class ChatRoom;
-
-// ---------------- ChatRoom ----------------
 
 class ChatRoom {
 public:
@@ -37,8 +33,6 @@ private:
     std::set<std::shared_ptr<Session>> sessions_;
 };
 
-// ---------------- Session ----------------
-
 class Session : public std::enable_shared_from_this<Session> {
 public:
     Session(tcp::socket socket, ChatRoom& room);
@@ -46,6 +40,7 @@ public:
     void deliver(const std::string& msg);
 private:
     void do_read();
+    void do_initial_read();
     void do_write();
     boost::uuids::uuid id() const;
 private:
@@ -54,9 +49,9 @@ private:
     boost::asio::streambuf buffer_;
     std::deque<std::string> write_queue_;
     boost::uuids::uuid id_;
+    std::string user_name_;
 };
 
-// ---------------- Server ----------------
 
 class Server {
 public:
@@ -69,4 +64,3 @@ private:
     ChatRoom room_;
 };
 
-// ---------------- main ----------------

@@ -24,7 +24,7 @@ Session::Session(tcp::socket socket, ChatRoom& room)
 
 void Session::start() {
     room_.join(shared_from_this());
-    do_read();
+    do_initial_read();
 }
 
 void Session::deliver(const std::string& msg) {
@@ -33,6 +33,25 @@ void Session::deliver(const std::string& msg) {
     if (!write_in_progress) {
         do_write();
     }
+}
+
+void Session::do_initial_read() {
+    auto self(shared_from_this());
+    boost::asio::async_read_until(socket_, buffer_, '\n',
+        [this, self](boost::system::error_code ec, std::size_t /*len*/) {
+            if (!ec) {
+                std::istream is(&buffer_);
+                std::string line;
+                std::getline(is, line);
+
+                user_name_ = line;
+
+                room_.broadcast(fmt::format("User {} has joined the room!\n", user_name_));
+                do_read();
+            } else {
+                room_.leave(self);
+            }
+        });
 }
 
 void Session::do_read() {
@@ -44,10 +63,9 @@ void Session::do_read() {
                 std::string line;
                 std::getline(is, line);
 
-                // Broadcast to everyone
-                spdlog::info("Client {} sent {}", boost::uuids::to_string(id_), line);
+                spdlog::info("Client {} ({}) sent {}", user_name_, boost::uuids::to_string(id_), line);
 
-                room_.broadcast(line + "\n");
+                room_.broadcast(fmt::format("{}: {}\n", user_name_, line));
                 do_read();
             } else {
                 room_.leave(self);
@@ -58,7 +76,7 @@ void Session::do_read() {
 void Session::do_write() {
     auto self(shared_from_this());
     boost::asio::async_write(socket_,
-        boost::asio::buffer("Reply: " + write_queue_.front()),
+        boost::asio::buffer(write_queue_.front()),
         [this, self](boost::system::error_code ec, std::size_t /*len*/) {
             if (!ec) {
                 write_queue_.pop_front();

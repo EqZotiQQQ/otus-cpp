@@ -1,4 +1,5 @@
 #include "client.hpp"
+#include <stdexcept>
 #include <string>
 
 namespace po = boost::program_options;
@@ -8,6 +9,7 @@ struct Options {
     uint16_t port;
     boost::asio::ip::address_v4 ip_addr;
     uint8_t log_level;
+    std::string user_name;
 };
 
 
@@ -21,6 +23,7 @@ Options parse_options(int argc, char* argv[]) {
         ("help,h", "this message")
         ("port,p", po::value<uint16_t>(&opts.port)->default_value(12345), "port")
         ("log-level,l", po::value<uint8_t>(&opts.log_level)->default_value(1), "0-info+, 1-warn+")
+        ("user-name,u", po::value<std::string>(&opts.user_name), "displayed user name")
         ("ip,i", po::value<std::string>(&ip_as_str)->default_value("127.0.0.1"), "ip address");
 
     po::variables_map vm;
@@ -32,6 +35,9 @@ Options parse_options(int argc, char* argv[]) {
         std::exit(0);
     }
 
+    if (opts.user_name.empty()) {
+        throw std::runtime_error("Unable to start without passing --username/-u");
+    }
     boost::system::error_code ec;
     opts.ip_addr = boost::asio::ip::make_address_v4(ip_as_str, ec);
     if (ec) {
@@ -42,15 +48,15 @@ Options parse_options(int argc, char* argv[]) {
 }
 
 
-Client::Client(boost::asio::io_context& io, tcp::resolver::results_type endpoints)
-    : io_(io), socket_(io) {
+Client::Client(boost::asio::io_context& io, tcp::resolver::results_type endpoints, const std::string& user_name)
+    : user_name_(user_name), io_(io), socket_(io) {
     do_connect(endpoints);
 }
 
 void Client::write(const std::string& msg) {
     boost::asio::post(io_, [this, msg]() {
         bool write_in_progress = !write_queue_.empty();
-        write_queue_.push_back(msg);
+        write_queue_.push_back(msg + '\n');
         if (!write_in_progress) {
             do_write();
         }
@@ -67,7 +73,9 @@ void Client::do_connect(const tcp::resolver::results_type& endpoints) {
     boost::asio::async_connect(socket_, endpoints,
         [this](boost::system::error_code ec, tcp::endpoint) {
             if (!ec) {
+                spdlog::info("Connection established");
                 do_read();
+                write(user_name_);
             } else {
                 std::cerr << "Connect failed: " << ec.message() << "\n";
             }
@@ -81,7 +89,7 @@ void Client::do_read() {
                 std::istream is(&buffer_);
                 std::string line;
                 std::getline(is, line);
-                std::cout << line << std::endl;
+                spdlog::info("{}", line);
                 do_read();
             } else {
                 std::cerr << "Read error: " << ec.message() << "\n";
@@ -115,14 +123,14 @@ int main(int argc, char* argv[]) {
         tcp::resolver resolver(io);
         auto endpoints = resolver.resolve(options.ip_addr.to_string(), std::to_string(options.port));
 
-        Client client(io, endpoints);
+        Client client(io, endpoints, options.user_name);
 
         std::thread t([&io]() { io.run(); });
 
         // Read from stdin and send to server
         std::string line;
         while (std::getline(std::cin, line)) {
-            client.write(line + "\n");
+            client.write(line);
         }
 
         client.close();
