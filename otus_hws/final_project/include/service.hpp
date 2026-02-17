@@ -46,6 +46,7 @@ public:
     void deliver(const std::string& msg);
 private:
     void do_read();
+    void do_initial_read();
     void do_write();
     boost::uuids::uuid id() const;
 private:
@@ -54,6 +55,7 @@ private:
     boost::asio::streambuf buffer_;
     std::deque<std::string> write_queue_;
     boost::uuids::uuid id_;
+    std::string user_name_;
 };
 
 // ---------------- Server ----------------

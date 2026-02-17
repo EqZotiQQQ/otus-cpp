@@ -25,7 +25,11 @@ add_subdirectory(otus_hws/hw10)
 # add_subdirectory(otus_hws/hw11)
 # add_subdirectory(otus_hws/hw12)
 # add_subdirectory(otus_hws/hw13)
+<<<<<<< HEAD
 # add_subdirectory(otus_hws/final_project)
+=======
+add_subdirectory(otus_hws/final_project)
+>>>>>>> 7a383f7 (added chat core)
 
 # add_subdirectory(experiments)
 # add_subdirectory(problems)
