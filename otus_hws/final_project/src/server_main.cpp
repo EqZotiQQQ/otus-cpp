@@ -6,7 +6,7 @@ int main(int argc, char* argv[]) {
     try {
         boost::asio::io_context io;
 
-        Server server(io, options.port);
+        Server server(io, options.port, options.history_depth_);
 
         spdlog::info("Chat server started on port {}", options.port);
 

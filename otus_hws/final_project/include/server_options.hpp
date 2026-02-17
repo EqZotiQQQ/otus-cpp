@@ -13,6 +13,7 @@ struct Options {
     uint16_t port;
     boost::asio::ip::address_v4 ip_addr;
     uint8_t log_level;
+    size_t history_depth_;
 };
 
 
@@ -24,6 +25,7 @@ Options parse_options(int argc, char* argv[]) {
     po::options_description desc("Allowed options");
     desc.add_options()
         ("help,h", "this message")
+        ("history", po::value<size_t>(&opts.history_depth_)->default_value(100), "history size")
         ("port,p", po::value<uint16_t>(&opts.port)->default_value(12345), "port")
         ("log-level,l", po::value<uint8_t>(&opts.log_level)->default_value(1), "0-info+, 1-warn+")
         ("ip,i", po::value<std::string>(&ip_as_str)->default_value("127.0.0.1"), "ip address");

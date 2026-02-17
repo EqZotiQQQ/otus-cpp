@@ -20,7 +20,7 @@ using boost::asio::ip::tcp;
 
 class UserSession : public std::enable_shared_from_this<UserSession> {
 public:
-    UserSession(tcp::socket socket, ChatRoom& room);
+    explicit UserSession(tcp::socket socket, ChatRoom& room);
     void start();
     void deliver(const std::string& msg);
 private:
@@ -40,7 +40,7 @@ private:
 
 class Server {
 public:
-    Server(boost::asio::io_context& io, short port);
+    Server(boost::asio::io_context& io, short port, size_t history_depth);
 private:
     void do_accept();
 

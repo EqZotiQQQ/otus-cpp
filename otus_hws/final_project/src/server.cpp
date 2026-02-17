@@ -1,4 +1,5 @@
 #include "server.hpp"
+#include "chat_room.hpp"
 
 
 UserSession::UserSession(tcp::socket socket, ChatRoom& room)
@@ -8,7 +9,7 @@ UserSession::UserSession(tcp::socket socket, ChatRoom& room)
       }
 
 void UserSession::start() {
-    room_.join(shared_from_this());
+    room_.client_join(shared_from_this());
     do_initial_read();
 }
 
@@ -34,7 +35,7 @@ void UserSession::do_initial_read() {
                 room_.broadcast(fmt::format("User {} has joined the room!\n", user_name_));
                 do_read();
             } else {
-                room_.leave(self);
+                room_.client_disconnect(self);
             }
         });
 }
@@ -50,10 +51,12 @@ void UserSession::do_read() {
 
                 spdlog::info("Client {} ({}) sent {}", user_name_, boost::uuids::to_string(id_), line);
 
-                room_.broadcast(fmt::format("{}: {}\n", user_name_, line));
+                auto formatted = fmt::format("{}: {}\n", user_name_, line);
+
+                room_.broadcast(formatted);
                 do_read();
             } else {
-                room_.leave(self);
+                room_.client_disconnect(self);
             }
         });
 }
@@ -69,15 +72,15 @@ void UserSession::do_write() {
                     do_write();
                 }
             } else {
-                room_.leave(self);
+                room_.client_disconnect(self);
             }
         });
 }
 
 boost::uuids::uuid UserSession::id() const { return id_; }
 
-Server::Server(boost::asio::io_context& io, short port)
-    : acceptor_(io, tcp::endpoint(tcp::v4(), port)) {
+Server::Server(boost::asio::io_context& io, short port, size_t history_depth)
+    : acceptor_(io, tcp::endpoint(tcp::v4(), port)), room_(ChatRoom{history_depth}) {
     do_accept();
 }
 
