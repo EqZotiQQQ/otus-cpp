@@ -1,41 +1,26 @@
+#pragma once
+
+#include "chat_room.hpp"
+
+
+#include <spdlog/spdlog.h>
+
 #include <boost/asio.hpp>
-#include <iostream>
-#include <memory>
-#include <set>
-#include <deque>
-#include <string>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
-#include <boost/asio/ip/address_v4.hpp>
-#include <boost/program_options.hpp>
-#include <spdlog/spdlog.h>
+
+#include <memory>
+#include <deque>
+#include <string>
 
 using namespace boost;
 using boost::asio::ip::tcp;
 
-struct Options {
-    uint16_t port;
-    boost::asio::ip::address_v4 ip_addr;
-    uint8_t log_level;
-};
 
-class Session;
-class ChatRoom;
-
-class ChatRoom {
+class UserSession : public std::enable_shared_from_this<UserSession> {
 public:
-    void join(std::shared_ptr<Session> session);
-    void leave(std::shared_ptr<Session> session);
-    void broadcast(const std::string& msg);
-
-private:
-    std::set<std::shared_ptr<Session>> sessions_;
-};
-
-class Session : public std::enable_shared_from_this<Session> {
-public:
-    Session(tcp::socket socket, ChatRoom& room);
+    UserSession(tcp::socket socket, ChatRoom& room);
     void start();
     void deliver(const std::string& msg);
 private:

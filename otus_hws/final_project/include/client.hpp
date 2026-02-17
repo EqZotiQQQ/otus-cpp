@@ -1,22 +1,10 @@
 #pragma once
 
-#include <boost/asio.hpp>
-#include <iostream>
-#include <thread>
 #include <deque>
 #include <string>
+
 #include <boost/asio.hpp>
-#include <iostream>
-#include <memory>
-#include <set>
-#include <deque>
-#include <string>
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_generators.hpp>
-#include <boost/uuid/uuid_io.hpp>
 #include <boost/asio/ip/address_v4.hpp>
-#include <boost/program_options.hpp>
-#include <spdlog/spdlog.h>
 
 using namespace boost;
 using boost::asio::ip::tcp;
