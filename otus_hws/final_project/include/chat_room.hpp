@@ -7,8 +7,6 @@
 
 #include <boost/circular_buffer.hpp>
 
-#include <spdlog/spdlog.h>
-
 class UserSession;
 
 class ChatRoom {

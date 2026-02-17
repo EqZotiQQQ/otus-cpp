@@ -1,6 +1,8 @@
 #include "server.hpp"
 #include "chat_room.hpp"
 
+#include <spdlog/spdlog.h>
+
 
 UserSession::UserSession(tcp::socket socket, ChatRoom& room)
     : socket_(std::move(socket)), room_(room),
