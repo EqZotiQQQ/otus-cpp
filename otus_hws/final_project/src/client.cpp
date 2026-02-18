@@ -29,7 +29,6 @@ void Client::do_connect(const tcp::resolver::results_type& endpoints) {
             if (!ec) {
                 spdlog::info("Connection established");
                 do_read();
-                write(user_name_);
             } else {
                 spdlog::error("Connect failed: {}", ec.message());
             }

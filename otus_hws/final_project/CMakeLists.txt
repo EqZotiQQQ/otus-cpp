@@ -46,7 +46,7 @@ target_include_directories(client PUBLIC
 )
 
 
-add_executable(server src/server_main.cpp src/chat_room.cpp src/server.cpp)
+add_executable(server src/server_main.cpp src/chat_room.cpp src/server.cpp src/user_manager.cpp)
 target_link_libraries(server PUBLIC Boost::system Boost::thread Boost::program_options spdlog::spdlog)
 target_include_directories(server PUBLIC 
     "${CMAKE_CURRENT_SOURCE_DIR}/include"

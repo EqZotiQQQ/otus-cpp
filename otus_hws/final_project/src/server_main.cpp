@@ -1,6 +1,8 @@
 #include "server.hpp"
 #include "server_options.hpp"
 
+#include <spdlog/spdlog.h>
+
 int main(int argc, char* argv[]) {
     Options options = parse_options(argc, argv);
     try {
