@@ -144,7 +144,7 @@ void UserSession::handle_auth_command(const Command& cmd) {
         }
     }
     else {
-        deliver("Unknown auth command\n");
+        deliver("Unauthorized: /register or /reg or /login <username> <password>\n");
     }
 }
 
