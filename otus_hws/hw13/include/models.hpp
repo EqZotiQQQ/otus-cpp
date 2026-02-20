@@ -5,194 +5,211 @@
 #include <filesystem>
 #include <fstream>
 #include <memory>
+#include <vector>
+
 #include <spdlog/spdlog.h>
 #include <Eigen/Dense>
 
 namespace fs = std::filesystem;
 
-constexpr int INPUT_SIZE = 784;
-constexpr int BIAS_SIZE = 1;
-constexpr int TOTAL_FEATURES = INPUT_SIZE + BIAS_SIZE;  // 785
-constexpr int NUM_CLASSES = 10;
-constexpr int MLP_HIDDEN_SIZE = 128;
-
-class LogRegModel final : public Model {
+class LogRegModel : public Model {
 private:
-    Eigen::MatrixXd weights_;  // 10 x 785
-    std::string name_ = "LogisticRegression";
+    Eigen::MatrixXd weights_;        // 10 x 785
+    Eigen::VectorXd logits_;         // 10
+    std::string model_name_ = "LogReg";
+
+    static constexpr int kInputSize = 785;
+    static constexpr int kNumClasses = 10;
 
 public:
     explicit LogRegModel(const fs::path& path) {
         load_model(path);
+        logits_.resize(kNumClasses);
     }
 
-    int predict(const Eigen::VectorXd& features) noexcept override {
+    int predict(const Eigen::VectorXd& features) override {
+        logits_.noalias() = weights_ * features;
+
         Eigen::Index max_idx;
-        (weights_ * features).maxCoeff(&max_idx);
+        logits_.maxCoeff(&max_idx);
         return static_cast<int>(max_idx);
     }
 
     double compute_accuracy(const fs::path& test_file) override {
         std::ifstream file(test_file);
-        if (!file.is_open()) [[unlikely]] {
+        if (!file.is_open()) {
             spdlog::error("Cannot open test file: {}", test_file.string());
             return 0.0;
         }
 
-        int correct = 0, total = 0;
-        std::string line;
-        line.reserve(8192);
+        Eigen::VectorXd features(kInputSize);
+        std::vector<double> buffer(kInputSize);
 
-        Eigen::VectorXd features(TOTAL_FEATURES);
-        features(0) = 1.0;
+        int correct = 0;
+        int total = 0;
+        bool do_work = true;
 
-        while (std::getline(file, line)) {
-            std::istringstream iss(line);
-            
-            int true_label;
-            iss >> true_label;
-            
-            for (int i = 0; i < INPUT_SIZE; ++i) {
-                iss >> features(i + BIAS_SIZE);
+        while (do_work) {
+            for (int i = 0; i < kInputSize; ++i) {
+                if (!(file >> buffer[i])) {
+                    do_work = false;
+                    break;
+                }
             }
+
+            int true_label = static_cast<int>(buffer[0]);
+
+            features(0) = 1.0;
+            Eigen::Map<Eigen::VectorXd>(features.data() + 1, kInputSize - 1) =
+                Eigen::Map<Eigen::VectorXd>(&buffer[1], kInputSize - 1);
 
             int pred = predict(features);
-            if (pred == true_label) [[likely]] {
-                ++correct;
-            }
+            correct += (pred == true_label);
             ++total;
         }
 
-        double accuracy = static_cast<double>(correct) / total;
-        spdlog::info("LogReg accuracy: {}/{} = {:.4f}", correct, total, accuracy);
-        return accuracy;
+        if (total == 0) return 0.0;
+
+        double acc = static_cast<double>(correct) / total;
+        spdlog::info("{} accuracy: {}/{} = {}", model_name_, correct, total, acc);
+        return acc;
     }
 
-    std::string name() const override { return name_; }
+    std::string name() const override {
+        return model_name_;
+    }
 
 private:
     void load_model(const fs::path& path) {
         std::ifstream file(path);
-        if (!file.is_open()) [[unlikely]] {
+        if (!file.is_open()) {
             spdlog::error("Cannot open LogReg model: {}", path.string());
             return;
         }
 
-        Eigen::MatrixXd raw(INPUT_SIZE + BIAS_SIZE, NUM_CLASSES);
-        
-        for (int i = 0; i < TOTAL_FEATURES && file.good(); ++i) {
-            for (int j = 0; j < NUM_CLASSES; ++j) {
-                file >> raw(i, j);
+        weights_.resize(kNumClasses, kInputSize);
+
+        for (int i = 0; i < kNumClasses; ++i) {
+            for (int j = 0; j < kInputSize; ++j) {
+                file >> weights_(i, j);
             }
         }
-        
-        weights_ = raw.transpose();  // 10x785
-        spdlog::info("LogReg loaded: {}x{} from {}", 
-                    weights_.rows(), weights_.cols(), path.string());
+
+        spdlog::info("LogReg loaded: {}x{}", kNumClasses, kInputSize);
     }
 };
 
-inline std::unique_ptr<Model> create_logreg_model(const fs::path& path) {
-    return std::make_unique<LogRegModel>(path);
-}
-
-class MLPModel final : public Model {
+class MLPModel : public Model {
 private:
-    Eigen::MatrixXd w1_;  // 784x128
-    Eigen::MatrixXd w2_;  // 128x10
-    std::string name_ = "MLP";
-    
-    static constexpr double NORMALIZATION_FACTOR = 1.0 / 255.0;
+    Eigen::MatrixXd w1_;     // 128 x 784
+    Eigen::MatrixXd w2_;     // 10 x 128
+
+    Eigen::VectorXd tmp_;    // 784
+    Eigen::VectorXd hidden_; // 128
+    Eigen::VectorXd logits_; // 10
+
+    std::string model_name_ = "MLPModel";
+
+    static constexpr int kInputSize = 784;
+    static constexpr int kHiddenSize = 128;
+    static constexpr int kNumClasses = 10;
+
+    const double inv_255_ = 1.0 / 255.0;
 
 public:
     MLPModel(const fs::path& w1_path, const fs::path& w2_path) {
         load_model(w1_path, w2_path);
+
+        tmp_.resize(kInputSize);
+        hidden_.resize(kHiddenSize);
+        logits_.resize(kNumClasses);
     }
 
-    int predict(const Eigen::VectorXd& features) noexcept override {
-        Eigen::VectorXd hidden = (w1_ * (features * NORMALIZATION_FACTOR))
-            .unaryExpr([](double x) { return 1.0 / (1.0 + std::exp(-x)); });
-        
-        Eigen::VectorXd logits = w2_ * hidden;
+    int predict(const Eigen::VectorXd& features) override {
+        tmp_.noalias() = features;
+        tmp_ *= inv_255_;
+
+        hidden_.noalias() = w1_ * tmp_;
+
+        hidden_ = 1.0 / (1.0 + (-hidden_.array()).exp());
+
+        logits_.noalias() = w2_ * hidden_;
+
         Eigen::Index max_idx;
-        logits.maxCoeff(&max_idx);
+        logits_.maxCoeff(&max_idx);
         return static_cast<int>(max_idx);
     }
-    
 
     double compute_accuracy(const fs::path& test_file) override {
         std::ifstream file(test_file);
-        if (!file.is_open()) [[unlikely]] {
+        if (!file.is_open()) {
             spdlog::error("Cannot open test file: {}", test_file.string());
             return 0.0;
         }
 
-        int correct = 0, total = 0;
-        std::string line;
-        line.reserve(8192);
-        
-        Eigen::VectorXd features(INPUT_SIZE);
+        Eigen::VectorXd features(kInputSize);
+        std::vector<double> buffer(kInputSize + 1);
 
-        while (std::getline(file, line)) {
-            std::istringstream iss(line);
-            
-            int true_label;
-            iss >> true_label;
-            
-            for (int i = 0; i < INPUT_SIZE; ++i) {
-                iss >> features(i);
+        int correct = 0;
+        int total = 0;
+        bool do_work = true;
+
+        while (do_work) {
+            for (int i = 0; i < kInputSize + 1; ++i) {
+                if (!(file >> buffer[i])) {
+                    do_work = false;
+                    break;
+                }
             }
+
+            int true_label = static_cast<int>(buffer[0]);
+
+            Eigen::Map<Eigen::VectorXd>(features.data(), kInputSize) =
+                Eigen::Map<Eigen::VectorXd>(&buffer[1], kInputSize);
 
             int pred = predict(features);
-            if (pred == true_label) [[likely]] {
-                ++correct;
-            }
+            correct += (pred == true_label);
             ++total;
         }
 
-        double accuracy = static_cast<double>(correct) / total;
-        spdlog::info("MLP accuracy: {}/{} = {:.4f}", correct, total, accuracy);
-        return accuracy;
+
+        if (total == 0) return 0.0;
+
+        double acc = static_cast<double>(correct) / total;
+        spdlog::info("{} accuracy: {}/{} = {}", model_name_, correct, total, acc);
+        return acc;
     }
 
-    std::string name() const override { return name_; }
+    std::string name() const override {
+        return model_name_;
+    }
 
 private:
-    static Eigen::VectorXd sigmoid(const Eigen::VectorXd& x) noexcept {
-        return (1.0 / (1.0 + (-x.array()).exp())).matrix();
-    }
-
-
     void load_model(const fs::path& w1_path, const fs::path& w2_path) {
-        std::ifstream f1(w1_path), f2(w2_path);
-        if (!f1.is_open() || !f2.is_open()) [[unlikely]] {
-            spdlog::error("Cannot load MLP weights: {}, {}", 
+        std::ifstream f1(w1_path);
+        std::ifstream f2(w2_path);
+
+        if (!f1.is_open() || !f2.is_open()) {
+            spdlog::error("Cannot load MLP weights: {}, {}",
                          w1_path.string(), w2_path.string());
             return;
         }
 
-        w1_.resize(MLP_HIDDEN_SIZE, INPUT_SIZE);
-        for (int i = 0; i < MLP_HIDDEN_SIZE && f1.good(); ++i) {
-            for (int j = 0; j < INPUT_SIZE; ++j) {
-                f1 >> w1_(i, j);
-            }
-        }
-        
-        w2_.resize(MLP_HIDDEN_SIZE, NUM_CLASSES);
-        for (int i = 0; i < MLP_HIDDEN_SIZE && f2.good(); ++i) {
-            for (int j = 0; j < NUM_CLASSES; ++j) {
-                f2 >> w2_(i, j);
-            }
-        }
+        Eigen::MatrixXd raw_w1(kInputSize, kHiddenSize);
+        for (int i = 0; i < kInputSize; ++i)
+            for (int j = 0; j < kHiddenSize; ++j)
+                f1 >> raw_w1(i, j);
 
-        spdlog::info("MLP loaded: w1={}x{}, w2={}x{}", 
-                    w1_.rows(), w1_.cols(), w2_.rows(), w2_.cols());
+        Eigen::MatrixXd raw_w2(kHiddenSize, kNumClasses);
+        for (int i = 0; i < kHiddenSize; ++i)
+            for (int j = 0; j < kNumClasses; ++j)
+                f2 >> raw_w2(i, j);
+
+        w1_ = raw_w1.transpose();  // 128 x 784
+        w2_ = raw_w2.transpose();  // 10 x 128
+
+        spdlog::info("MLP mode: w1={}x{}, w2={}x{}",
+                     kHiddenSize, kInputSize,
+                     kNumClasses, kHiddenSize);
     }
 };
-
-inline std::unique_ptr<Model> create_mlp_model(const fs::path& w1_path, const fs::path& w2_path) {
-    return std::make_unique<MLPModel>(w1_path, w2_path);
-}
-
-std::unique_ptr<Model> create_model(const std::string& model_type,
-                                   const fs::path& model_path);

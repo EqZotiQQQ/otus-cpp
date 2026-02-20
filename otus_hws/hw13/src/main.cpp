@@ -62,16 +62,16 @@ int main(int argc, char* argv[]) {
 
     std::unique_ptr<Model> model;
     if (options.model_type == AvailableModelTypes::LOGREG) {
-        model = create_logreg_model(options.model);
+        model = std::make_unique<LogRegModel>(options.model);
     } else if (options.model_type == AvailableModelTypes::MLP && options.w2_file.has_value()) {
-        model = create_mlp_model(options.model, *options.w2_file);
+        model = std::make_unique<MLPModel>(options.model, *options.w2_file);
     } else {
         // ...
     }
 
     if (model) {
         double acc = model->compute_accuracy(options.dataset_path);
-        spdlog::info("Got accuracy {}", acc);
+        spdlog::info("Model accuracy {}", acc);
     }
 
     return 0;
