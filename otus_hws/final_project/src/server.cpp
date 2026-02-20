@@ -1,19 +1,18 @@
 #include "server.hpp"
-#include "chat_room.hpp"
-#include "user_manager.hpp"
 
 #include <spdlog/spdlog.h>
+
 #include <boost/smart_ptr/shared_ptr.hpp>
 #include <chrono>
 #include <memory>
 
+#include "chat_room.hpp"
+#include "user_manager.hpp"
 
 UserSession::UserSession(tcp::socket socket, ChatRoom& room, UserManager& user_manager)
-    : socket_(std::move(socket)), room_(room),
-      id_(boost::uuids::random_generator()()),
-      user_manager_(user_manager) {
-        spdlog::info("New client conected with id {}", boost::uuids::to_string(id_));
-      }
+    : socket_(std::move(socket)), room_(room), id_(boost::uuids::random_generator()()), user_manager_(user_manager) {
+    spdlog::info("New client conected with id {}", boost::uuids::to_string(id_));
+}
 
 void UserSession::start() {
     room_.client_join(shared_from_this());
@@ -30,32 +29,30 @@ void UserSession::deliver(const std::string& msg) {
 
 void UserSession::do_read() {
     auto self(shared_from_this());
-    boost::asio::async_read_until(socket_, buffer_, '\n',
-        [this, self](boost::system::error_code ec, std::size_t) {
-            if (!ec) {
-                std::istream is(&buffer_);
-                std::string line;
-                std::getline(is, line);
+    boost::asio::async_read_until(socket_, buffer_, '\n', [this, self](boost::system::error_code ec, std::size_t) {
+        if (!ec) {
+            std::istream is(&buffer_);
+            std::string line;
+            std::getline(is, line);
 
-                spdlog::info("Client {} ({}) sent {}", user_name_, boost::uuids::to_string(id_), line);
+            spdlog::info("Client {} ({}) sent {}", user_name_, boost::uuids::to_string(id_), line);
 
-                
-                if (line.starts_with('/')) {
-                    auto command = CommandParser::parse(line);
-                    handle_command(command);
-                } else if (state_ == State::Authenticated) {
-                    auto rx_stamp = std::chrono::system_clock::now();
-                    handle_message(line, rx_stamp);
-                } else {
-                    deliver("Unauthorized. Use /register or /login\n");
-                }
-
-                spdlog::info("Keep listening");
-                do_read();
+            if (line.starts_with('/')) {
+                auto command = CommandParser::parse(line);
+                handle_command(command);
+            } else if (state_ == State::Authenticated) {
+                auto rx_stamp = std::chrono::system_clock::now();
+                handle_message(line, rx_stamp);
             } else {
-                room_.client_disconnect(self);
+                deliver("Unauthorized. Use /register or /login\n");
             }
-        });
+
+            spdlog::info("Keep listening");
+            do_read();
+        } else {
+            room_.client_disconnect(self);
+        }
+    });
 }
 
 void UserSession::handle_message(const std::string& line, const std::chrono::system_clock::time_point& rx_stamp) {
@@ -80,8 +77,7 @@ void UserSession::handle_user_command(const Command& cmd) {
             deliver(
                 "Available commands:\n"
                 "/history\n"
-                "/help\n"
-            );
+                "/help\n");
             break;
 
         default:
@@ -101,8 +97,7 @@ void UserSession::handle_auth_command(const Command& cmd) {
         } else {
             deliver("AUTH_FAIL User exists\n");
         }
-    }
-    else if (cmd.type == CommandType::Login) {
+    } else if (cmd.type == CommandType::Login) {
         if (cmd.args.size() != 2) {
             deliver("Usage: /login <username> <password>\n");
             return;
@@ -113,8 +108,7 @@ void UserSession::handle_auth_command(const Command& cmd) {
         } else {
             deliver("AUTH_FAIL Invalid credentials\n");
         }
-    }
-    else {
+    } else {
         deliver("Unauthorized: /register or /reg or /login <username> <password>\n");
     }
 }
@@ -133,22 +127,26 @@ void UserSession::authenticate_success(const std::string& username) {
 void UserSession::do_write() {
     auto self(shared_from_this());
     boost::asio::async_write(socket_,
-        boost::asio::buffer(write_queue_.front()),
-        [this, self](boost::system::error_code ec, std::size_t /*len*/) {
-            if (!ec) {
-                write_queue_.pop_front();
-                if (!write_queue_.empty()) {
-                    do_write();
-                }
-            } else {
-                room_.client_disconnect(self);
-            }
-        });
+                             boost::asio::buffer(write_queue_.front()),
+                             [this, self](boost::system::error_code ec, std::size_t /*len*/) {
+                                 if (!ec) {
+                                     write_queue_.pop_front();
+                                     if (!write_queue_.empty()) {
+                                         do_write();
+                                     }
+                                 } else {
+                                     room_.client_disconnect(self);
+                                 }
+                             });
 }
 
-boost::uuids::uuid UserSession::id() const { return id_; }
+boost::uuids::uuid UserSession::id() const {
+    return id_;
+}
 
-State UserSession::get_state() const { return state_; }
+State UserSession::get_state() const {
+    return state_;
+}
 
 Server::Server(boost::asio::io_context& io, short port, size_t history_depth)
     : acceptor_(io, tcp::endpoint(tcp::v4(), port)), room_(ChatRoom{history_depth}) {
@@ -156,12 +154,11 @@ Server::Server(boost::asio::io_context& io, short port, size_t history_depth)
 }
 
 void Server::do_accept() {
-    acceptor_.async_accept(
-        [this](boost::system::error_code ec, tcp::socket socket) {
-            if (!ec) {
-                spdlog::info("New client conected");
-                std::make_shared<UserSession>(std::move(socket), room_, user_manager_)->start();
-            }
-            do_accept();
-        });
+    acceptor_.async_accept([this](boost::system::error_code ec, tcp::socket socket) {
+        if (!ec) {
+            spdlog::info("New client conected");
+            std::make_shared<UserSession>(std::move(socket), room_, user_manager_)->start();
+        }
+        do_accept();
+    });
 }
