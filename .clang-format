@@ -1,14 +1,24 @@
+BasedOnStyle: Google
+
 ColumnLimit: 140
+IndentWidth: 4
 UseTab: Never
+
 SpacesInParentheses: false
 SpaceAfterCStyleCast: true
 PointerAlignment: Left
+DerivePointerAlignment: false
+
 AllowShortIfStatementsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: None
+
 SortIncludes: true
 IncludeBlocks: Regroup
+
 BreakBeforeBraces: Attach
-AllowShortFunctionsOnASingleLine: None
-DerivePointerAlignment: false
 AccessModifierOffset: -4
-BasedOnStyle: Google
-IndentWidth: 4
+
+BinPackArguments: false
+BinPackParameters: false
+AllowAllArgumentsOnNextLine: false
+AllowAllParametersOfDeclarationOnNextLine: false
