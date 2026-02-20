@@ -1,0 +1,18 @@
+#!/bin/bash
+
+FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(cpp|hpp)$')
+
+if [ -z "$FILES" ]; then
+    exit 0
+fi
+
+echo "Running clang-format..."
+
+for FILE in $FILES; do
+    if [ -f "$FILE" ]; then
+        clang-format -i "$FILE"
+        git add "$FILE"
+    fi
+done
+
+exit 0
