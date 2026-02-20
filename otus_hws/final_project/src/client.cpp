@@ -2,8 +2,8 @@
 
 #include <spdlog/spdlog.h>
 
-Client::Client(boost::asio::io_context& io, tcp::resolver::results_type endpoints, const std::string& user_name)
-    : user_name_(user_name), io_(io), socket_(io) {
+Client::Client(boost::asio::io_context& io, tcp::resolver::results_type endpoints)
+    : io_(io), socket_(io) {
     do_connect(endpoints);
 }
 

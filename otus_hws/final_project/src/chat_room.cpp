@@ -27,11 +27,13 @@ void ChatRoom::client_disconnect(std::shared_ptr<UserSession> session) {
     sessions_.erase(session);
 }
 
-void ChatRoom::broadcast(const std::string& msg, const std::chrono::system_clock::time_point& rx_stamp) {
+void ChatRoom::broadcast(const std::string& msg, const std::chrono::system_clock::time_point& rx_stamp, const std::shared_ptr<UserSession> ignore_user) {
     simple_history_.push_back(std::make_pair(rx_stamp, msg));
     for (auto& s : sessions_) {
-        if (s->get_state() == State::Authenticated) {
-            s->deliver(std::format("{:%Y-%m-%d %H:%M:%S}: {}\n", rx_stamp, msg));
+        if (!ignore_user || (ignore_user && (ignore_user->id() != s->id()))) {
+            if (s->get_state() == State::Authenticated) {
+                s->deliver(std::format("{:%Y-%m-%d %H:%M:%S}: {}\n", rx_stamp, msg));
+            }
         }
     }
 }

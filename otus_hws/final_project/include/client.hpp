@@ -11,7 +11,7 @@ using boost::asio::ip::tcp;
 
 class Client {
 public:
-    Client(boost::asio::io_context& io, tcp::resolver::results_type endpoints, const std::string& user_name);
+    Client(boost::asio::io_context& io, tcp::resolver::results_type endpoints);
     void write(const std::string& msg);
     void close();
 private:
@@ -19,7 +19,6 @@ private:
     void do_read();
     void do_write();
 private:
-    std::string user_name_;
     boost::asio::io_context& io_;
     tcp::socket socket_;
     boost::asio::streambuf buffer_;

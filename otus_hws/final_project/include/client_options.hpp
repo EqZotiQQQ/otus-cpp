@@ -13,7 +13,6 @@ struct Options {
     uint16_t port;
     boost::asio::ip::address_v4 ip_addr;
     uint8_t log_level;
-    std::string user_name;
 };
 
 
@@ -27,7 +26,6 @@ Options parse_options(int argc, char* argv[]) {
         ("help,h", "this message")
         ("port,p", po::value<uint16_t>(&opts.port)->default_value(12345), "port")
         ("log-level,l", po::value<uint8_t>(&opts.log_level)->default_value(1), "0-info+, 1-warn+")
-        ("user-name,u", po::value<std::string>(&opts.user_name), "displayed user name")
         ("ip,i", po::value<std::string>(&ip_as_str)->default_value("127.0.0.1"), "ip address");
 
     po::variables_map vm;
@@ -39,9 +37,6 @@ Options parse_options(int argc, char* argv[]) {
         std::exit(0);
     }
 
-    if (opts.user_name.empty()) {
-        throw std::runtime_error("Unable to start without passing --username/-u");
-    }
     boost::system::error_code ec;
     opts.ip_addr = boost::asio::ip::make_address_v4(ip_as_str, ec);
     if (ec) {

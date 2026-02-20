@@ -15,7 +15,7 @@ public:
     explicit ChatRoom(size_t history_depth);
     void client_join(std::shared_ptr<UserSession> session);
     void client_disconnect(std::shared_ptr<UserSession> session);
-    void broadcast(const std::string& msg, const std::chrono::system_clock::time_point& rx_stamp);
+    void broadcast(const std::string& msg, const std::chrono::system_clock::time_point& rx_stamp, const std::shared_ptr<UserSession> muted_user = nullptr);
     void deliver_to_client(const std::shared_ptr<UserSession>& session, const std::string& msg);
     void deliver_history_to_client(const std::shared_ptr<UserSession>& session);
 

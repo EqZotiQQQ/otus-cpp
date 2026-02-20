@@ -3,7 +3,38 @@
 #include "user_manager.hpp"
 
 #include <spdlog/spdlog.h>
+#include <boost/smart_ptr/shared_ptr.hpp>
 #include <chrono>
+#include <memory>
+
+
+Command CommandParser::parse(const std::string& line) {
+    Command cmd;
+    cmd.raw = line;
+    if (!line.starts_with('/')) {
+        return cmd;
+    }
+    std::istringstream iss(line);
+    std::string token;
+    iss >> token;
+    cmd.type = resolve_command(token);
+    while (iss >> token) {
+        cmd.args.push_back(token);
+    }
+    return cmd;
+}
+
+CommandType CommandParser::resolve_command(const std::string& cmd) {
+    if (cmd == "/register" || cmd == "/reg")
+        return CommandType::Register;
+    if (cmd == "/login")
+        return CommandType::Login;
+    if (cmd == "/history" || cmd == "/hist")
+        return CommandType::History;
+    if (cmd == "/help")
+        return CommandType::Help;
+    return CommandType::Unknown;
+}
 
 
 UserSession::UserSession(tcp::socket socket, ChatRoom& room, UserManager& user_manager)
@@ -26,7 +57,6 @@ void UserSession::deliver(const std::string& msg) {
     }
 }
 
-
 void UserSession::do_read() {
     auto self(shared_from_this());
     boost::asio::async_read_until(socket_, buffer_, '\n',
@@ -38,13 +68,18 @@ void UserSession::do_read() {
 
                 spdlog::info("Client {} ({}) sent {}", user_name_, boost::uuids::to_string(id_), line);
 
-                if (state_ == State::WaitingAuth) {
-                    handle_auth(line);
-                } else {
+                
+                if (line.starts_with('/')) {
+                    auto command = CommandParser::parse(line);
+                    handle_command(command);
+                } else if (state_ == State::Authenticated) {
                     auto rx_stamp = std::chrono::system_clock::now();
                     handle_message(line, rx_stamp);
+                } else {
+                    deliver("Unauthorized. Use /register or /login\n");
                 }
 
+                spdlog::info("Keep listening");
                 do_read();
             } else {
                 room_.client_disconnect(self);
@@ -53,30 +88,63 @@ void UserSession::do_read() {
 }
 
 void UserSession::handle_message(const std::string& line, const std::chrono::system_clock::time_point& rx_stamp) {
-    room_.broadcast(fmt::format("{}: {}", user_name_, line), rx_stamp);
+    room_.broadcast(fmt::format("{}: {}", user_name_, line), rx_stamp, shared_from_this());
 }
 
-void UserSession::handle_auth(const std::string& line) {
-    std::istringstream iss(line);
-    std::string cmd, username, password;
-    iss >> cmd >> username >> password;
+void UserSession::handle_command(const Command& cmd) {
+    if (state_ == State::WaitingAuth) {
+        handle_auth_command(cmd);
+    } else {
+        handle_user_command(cmd);
+    }
+}
 
-    if (cmd == "REGISTER") {
-        if (user_manager_.register_user(UserData{username, password})) {
-            authenticate_success(username);
+void UserSession::handle_user_command(const Command& cmd) {
+    switch (cmd.type) {
+        case CommandType::History:
+            room_.deliver_history_to_client(shared_from_this());
+            break;
+
+        case CommandType::Help:
+            deliver(
+                "Available commands:\n"
+                "/history\n"
+                "/help\n"
+            );
+            break;
+
+        default:
+            deliver("Unknown command\n");
+    }
+}
+
+void UserSession::handle_auth_command(const Command& cmd) {
+    if (cmd.type == CommandType::Register) {
+        if (cmd.args.size() != 2) {
+            deliver("Usage: /register <username> <password>\n");
+            return;
+        }
+
+        if (user_manager_.register_user({cmd.args[0], cmd.args[1]})) {
+            authenticate_success(cmd.args[0]);
         } else {
-            deliver("AUTH_FAIL User exists");
+            deliver("AUTH_FAIL User exists\n");
         }
     }
-    else if (cmd == "LOGIN") {
-        if (user_manager_.authenticate(UserData{username, password})) {
-            authenticate_success(username);
+    else if (cmd.type == CommandType::Login) {
+        if (cmd.args.size() != 2) {
+            deliver("Usage: /login <username> <password>\n");
+            return;
+        }
+
+        if (user_manager_.authenticate({cmd.args[0], cmd.args[1]})) {
+            authenticate_success(cmd.args[0]);
         } else {
-            deliver("AUTH_FAIL Invalid credentials");
+            deliver("AUTH_FAIL Invalid credentials\n");
         }
     }
     else {
-        deliver("AUTH_FAIL Unknown command");
+        deliver("Unknown auth command\n");
     }
 }
 
@@ -109,6 +177,8 @@ void UserSession::do_write() {
 
 boost::uuids::uuid UserSession::id() const { return id_; }
 
+State UserSession::get_state() const { return state_; }
+
 Server::Server(boost::asio::io_context& io, short port, size_t history_depth)
     : acceptor_(io, tcp::endpoint(tcp::v4(), port)), room_(ChatRoom{history_depth}) {
     do_accept();
@@ -124,4 +194,3 @@ void Server::do_accept() {
             do_accept();
         });
 }
-

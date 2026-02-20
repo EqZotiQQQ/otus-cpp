@@ -10,7 +10,7 @@ int main(int argc, char* argv[]) {
         tcp::resolver resolver(io);
         auto endpoints = resolver.resolve(options.ip_addr.to_string(), std::to_string(options.port));
 
-        Client client(io, endpoints, options.user_name);
+        Client client(io, endpoints);
 
         std::thread t([&io]() { io.run(); });
 

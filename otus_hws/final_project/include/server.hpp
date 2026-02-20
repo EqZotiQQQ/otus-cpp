@@ -21,22 +21,42 @@ enum class State {
     Authenticated
 };
 
+enum class CommandType {
+    Register,
+    Login,
+    History,
+    Help,
+    Unknown
+};
+
+struct Command {
+    CommandType type = CommandType::Unknown;
+    std::vector<std::string> args;
+    std::string raw;
+};
+
+class CommandParser {
+public:
+    static Command parse(const std::string& line);
+private:
+    static CommandType resolve_command(const std::string& cmd);
+};
 
 class UserSession : public std::enable_shared_from_this<UserSession> {
 public:
     explicit UserSession(tcp::socket socket, ChatRoom& room, UserManager& user_manager);
     void start();
     void deliver(const std::string& msg);
-    State get_state() const {
-        return state_;
-    }
+    State get_state() const;
+    boost::uuids::uuid id() const;
 private:
+    void handle_user_command(const Command& cmd);
+    void handle_command(const Command& cmd);
+    void handle_auth_command(const Command& cmd);
     void do_read();
-    void handle_auth(const std::string& line);
     void do_write();
     void authenticate_success(const std::string& username);
     void handle_message(const std::string& line, const std::chrono::system_clock::time_point& rx_stamp);
-    boost::uuids::uuid id() const;
 private:
     tcp::socket socket_;
     ChatRoom& room_;
