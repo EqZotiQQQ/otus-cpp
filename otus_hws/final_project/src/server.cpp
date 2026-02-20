@@ -31,6 +31,8 @@ void UserSession::do_read() {
     auto self(shared_from_this());
     boost::asio::async_read_until(socket_, buffer_, '\n', [this, self](boost::system::error_code ec, std::size_t) {
         if (!ec) {
+            auto rx_stamp = std::chrono::system_clock::now();
+
             std::istream is(&buffer_);
             std::string line;
             std::getline(is, line);
@@ -41,7 +43,6 @@ void UserSession::do_read() {
                 auto command = CommandParser::parse(line);
                 handle_command(command);
             } else if (state_ == State::Authenticated) {
-                auto rx_stamp = std::chrono::system_clock::now();
                 handle_message(line, rx_stamp);
             } else {
                 deliver("Unauthorized. Use /register or /login\n");
@@ -51,6 +52,7 @@ void UserSession::do_read() {
             do_read();
         } else {
             room_.client_disconnect(self);
+            user_manager_.log_out(user_name_);
         }
     });
 }
@@ -69,47 +71,71 @@ void UserSession::handle_command(const Command& cmd) {
 
 void UserSession::handle_user_command(const Command& cmd) {
     switch (cmd.type) {
-        case CommandType::History:
+        case CommandType::History: {
             room_.deliver_history_to_client(shared_from_this());
             break;
-
-        case CommandType::Help:
+        }
+        case CommandType::Users: {
+            std::string users = room_.get_logined_users();
+            deliver(fmt::format("Active users: {}\n", users));
+            spdlog::info("User asked to get a list of users: {}", users);
+            break;
+        }
+        case CommandType::Help: {
             deliver(
                 "Available commands:\n"
                 "/history\n"
+                "/users\n"
                 "/help\n");
             break;
-
+        }
         default:
             deliver("Unknown command\n");
     }
 }
 
 void UserSession::handle_auth_command(const Command& cmd) {
-    if (cmd.type == CommandType::Register) {
-        if (cmd.args.size() != 2) {
-            deliver("Usage: /register <username> <password>\n");
-            return;
-        }
+    switch (cmd.type) {
+        case CommandType::Register: {
+            if (cmd.args.size() != 2) {
+                deliver("Usage: /register <username> <password>\n");
+                return;
+            }
 
-        if (user_manager_.register_user({cmd.args[0], cmd.args[1]})) {
-            authenticate_success(cmd.args[0]);
-        } else {
-            deliver("AUTH_FAIL User exists\n");
-        }
-    } else if (cmd.type == CommandType::Login) {
-        if (cmd.args.size() != 2) {
-            deliver("Usage: /login <username> <password>\n");
-            return;
-        }
+            if (user_manager_.register_user(cmd.args[0], cmd.args[1])) {
+                authenticate_success(cmd.args[0]);
+            } else {
+                deliver("AUTH_FAIL User exists\n");
+            }
 
-        if (user_manager_.authenticate({cmd.args[0], cmd.args[1]})) {
-            authenticate_success(cmd.args[0]);
-        } else {
-            deliver("AUTH_FAIL Invalid credentials\n");
+            break;
         }
-    } else {
-        deliver("Unauthorized: /register or /reg or /login <username> <password>\n");
+        case CommandType::Login: {
+            if (cmd.args.size() != 2) {
+                deliver("Usage: /login <username> <password>\n");
+                return;
+            }
+
+            if (!user_manager_.is_registered(cmd.args[0])) {
+                deliver("AUTH_FAIL User not registered\n");
+                return;
+            }
+
+            if (!user_manager_.is_logined(cmd.args[0])) {
+                deliver("AUTH_FAIL User already logined\n");
+                return;
+            }
+
+            if (user_manager_.authenticate({cmd.args[0], cmd.args[1]})) {
+                authenticate_success(cmd.args[0]);
+            } else {
+                deliver("AUTH_FAIL Invalid credentials\n");
+            }
+            break;
+        }
+        default: {
+            deliver("Unauthorized: /register or /reg or /login <username> <password>\n");
+        }
     }
 }
 
@@ -146,6 +172,10 @@ boost::uuids::uuid UserSession::id() const {
 
 State UserSession::get_state() const {
     return state_;
+}
+
+std::string UserSession::name() const {
+    return user_name_;
 }
 
 Server::Server(boost::asio::io_context& io, short port, size_t history_depth)

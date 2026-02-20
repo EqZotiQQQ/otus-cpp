@@ -25,6 +25,8 @@ CommandType CommandParser::resolve_command(const std::string& cmd) {
         return CommandType::Login;
     if (cmd == "/history" || cmd == "/hist")
         return CommandType::History;
+    if (cmd == "/users" || cmd == "/u")
+        return CommandType::Users;
     if (cmd == "/help")
         return CommandType::Help;
     return CommandType::Unknown;

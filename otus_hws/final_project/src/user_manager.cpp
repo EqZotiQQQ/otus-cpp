@@ -1,36 +1,40 @@
 #include "user_manager.hpp"
-#include <stdexcept>
 
 UserManager::UserManager() {
-
 }
 
-bool UserManager::register_user(const UserData& user) {
-    if (!is_registered(user.user_name)) {
-        const auto [it, inserted] = users_.emplace(user.user_name, user);
+bool UserManager::register_user(const std::string& user_name, const std::string& password) {
+    if (!is_registered(user_name)) {
+        const auto [it, inserted] = users_.emplace(user_name, UserData{user_name, password, UserState::ACTIVE});
         return inserted;
-        
-    } 
-    return false;
-}
-
-void UserManager::remove_user(const std::string& user_name) {
-    if (is_registered(user_name)) {
-        users_.erase(user_name);
-    } else {
-        throw std::runtime_error("User not registered yet");
     }
+    return false;
 }
 
 bool UserManager::is_registered(const std::string& user_name) const {
     return users_.contains(user_name);
 }
 
-bool UserManager::authenticate(const UserData& user) const {
-    if (is_registered(user.user_name)) {
-        const auto& user_data = users_.at(user.user_name);
-        return user_data.user_name == user.user_name && user_data.password == user.password;
+bool UserManager::is_logined(const std::string& user_name) const {
+    return is_registered(user_name) && users_.at(user_name).state == UserState::ACTIVE;
+}
+
+bool UserManager::authenticate(const UserData& user) {
+    if (!is_logined(user.user_name)) {
+        auto& user_data = users_[user.user_name];
+        bool login_success = user_data.user_name == user.user_name && user_data.password == user.password;
+        if (login_success) {
+            user_data.state = UserState::ACTIVE;
+        }
+        return login_success;
     }
     return false;
 }
 
+bool UserManager::log_out(const std::string& user_name) {
+    if (is_logined(user_name)) {
+        users_[user_name].state = UserState::INACTIVE;
+        return true;
+    }
+    return false;
+}
