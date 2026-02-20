@@ -2,6 +2,7 @@
 
 #include "chat_room.hpp"
 #include "user_manager.hpp"
+#include "command_parser.hpp"
 
 
 #include <boost/asio.hpp>
@@ -21,26 +22,6 @@ enum class State {
     Authenticated
 };
 
-enum class CommandType {
-    Register,
-    Login,
-    History,
-    Help,
-    Unknown
-};
-
-struct Command {
-    CommandType type = CommandType::Unknown;
-    std::vector<std::string> args;
-    std::string raw;
-};
-
-class CommandParser {
-public:
-    static Command parse(const std::string& line);
-private:
-    static CommandType resolve_command(const std::string& cmd);
-};
 
 class UserSession : public std::enable_shared_from_this<UserSession> {
 public:

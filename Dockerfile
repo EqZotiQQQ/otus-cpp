@@ -29,6 +29,7 @@ RUN apt-get update && \
         flatbuffers-compiler \
         libflatbuffers-dev \
         netcat-traditional \
+        clang-format \
         libeigen3-dev \
         iputils-ping \
         && apt-get clean \

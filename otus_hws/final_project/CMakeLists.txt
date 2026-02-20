@@ -39,7 +39,7 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(spdlog)
 
-add_executable(client src/client_main.cpp src/client.cpp)
+add_executable(client src/client_main.cpp src/client.cpp src/command_parser.cpp)
 target_link_libraries(client PUBLIC Boost::system Boost::thread Boost::program_options spdlog::spdlog)
 target_include_directories(client PUBLIC 
     "${CMAKE_CURRENT_SOURCE_DIR}/include"
