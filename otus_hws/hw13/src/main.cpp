@@ -42,7 +42,7 @@ Options parse_options(int argc, char* argv[]) {
 
     std::optional<fs::path> w2_file = vm.count("w2") ? std::make_optional(fs::path(model)) : std::nullopt;
 
-    if (!fs::exists(vm["file"].as<std::string>())) {
+    if (!vm.contains("file") || !fs::exists(vm["file"].as<std::string>())) {
         throw std::runtime_error("You should pass csv dataset --file {file_path}");
     }
 
@@ -64,14 +64,14 @@ int main(int argc, char* argv[]) {
     if (options.model_type == AvailableModelTypes::LOGREG) {
         model = create_logreg_model(options.model);
     } else if (options.model_type == AvailableModelTypes::MLP && options.w2_file.has_value()) {
-        model = create_mlp_model(options.model, options.w2_file);
+        model = create_mlp_model(options.model, *options.w2_file);
     } else {
         // ...
     }
 
     if (model) {
         double acc = model->compute_accuracy(options.dataset_path);
-        std::cout << std::fixed << std::setprecision(3) << acc << std::endl;
+        spdlog::info("Got accuracy {}", acc);
     }
 
     return 0;
