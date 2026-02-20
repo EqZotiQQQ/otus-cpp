@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10.0)
+cmake_minimum_required(VERSION 3.28.3)
 
 set(PATCH_VERSION "1" CACHE INTERNAL "Patch version")
 set(PROJECT_VERSION 0.0.${PATCH_VERSION})
@@ -12,6 +12,8 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 find_package(Boost REQUIRED COMPONENTS system thread program_options)
+
+find_package (Eigen3 REQUIRED)
 
 include(FetchContent)
 
@@ -41,17 +43,16 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(spdlog)
 
-FetchContent_Declare(
-    eigen
-    GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
-    GIT_TAG 3.4.0   # можешь заменить на нужную версию или commit
-)
+# FetchContent_Declare(
+#     eigen
+#     GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
+#     GIT_TAG 3.4.0
+# )
 
-# Чтобы не тянуть лишнее
-set(EIGEN_BUILD_DOC OFF CACHE BOOL "" FORCE)
-set(EIGEN_BUILD_TESTING OFF CACHE BOOL "" FORCE)
+# set(EIGEN_BUILD_DOC OFF CACHE BOOL "" FORCE)
+# set(EIGEN_BUILD_TESTING OFF CACHE BOOL "" FORCE)
 
-FetchContent_MakeAvailable(eigen)
+# FetchContent_MakeAvailable(eigen)
 
 add_executable(ml_interface src/main.cpp)
 

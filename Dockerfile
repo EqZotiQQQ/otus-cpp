@@ -29,11 +29,11 @@ RUN apt-get update && \
         flatbuffers-compiler \
         libflatbuffers-dev \
         netcat-traditional \
+        libeigen3-dev \
         iputils-ping \
         && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-# libspdlog-dev # libsfml-dev \
 # RUN pip3 install --break-system-packages conan --upgrade
 
 # Create default Conan profile (important!)
