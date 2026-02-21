@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.28.3)
 
-set(PATCH_VERSION "1" CACHE INTERNAL "Patch version")
-set(PROJECT_VERSION 0.0.${PATCH_VERSION})
+project(chat VERSION 0.0.1)
 
-project(chat VERSION ${PROJECT_VERSION})
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -11,93 +11,32 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 find_package(Boost REQUIRED COMPONENTS system thread program_options)
 
-include(FetchContent)
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake")
+include(dependencies)
 
-FetchContent_Declare(
-    fmt
-    GIT_REPOSITORY https://github.com/fmtlib/fmt.git
-    GIT_TAG 12.1.0
-)
+add_library(chat_proto)
 
-set(FMT_BUILD_SHARED OFF)
-set(FMT_BUILD_TESTS OFF)
-set(FMT_BUILD_DOCS OFF)
+target_sources(chat_proto PRIVATE proto/schema.proto)
 
-FetchContent_MakeAvailable(fmt)
+target_link_libraries(chat_proto PUBLIC protobuf::libprotobuf)
 
-set(SPDLOG_FMT_EXTERNAL ON)
-set(SPDLOG_BUILD_SHARED OFF)
-set(SPDLOG_BUILD_EXAMPLE OFF)
-set(SPDLOG_BUILD_TESTS OFF)
-set(SPDLOG_BUILD_BENCH OFF)
+target_include_directories(chat_proto PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 
-FetchContent_Declare(
-    spdlog
-    GIT_REPOSITORY https://github.com/gabime/spdlog.git
-    GIT_TAG v1.17.0
-)
+# Client
 
-FetchContent_MakeAvailable(spdlog)
+add_executable(client src/client_main.cpp src/client.cpp)
 
-add_executable(client src/client_main.cpp src/client.cpp )
-target_link_libraries(client PUBLIC Boost::system Boost::thread Boost::program_options spdlog::spdlog)
-target_include_directories(client PUBLIC 
-    "${CMAKE_CURRENT_SOURCE_DIR}/include"
-)
+target_link_libraries(client PRIVATE Boost::system Boost::thread Boost::program_options
+                                     spdlog::spdlog chat_proto)
 
-FetchContent_Declare(
-    protobuf
-    GIT_REPOSITORY https://github.com/protocolbuffers/protobuf.git
-    GIT_TAG v25.3
-)
+target_include_directories(client PRIVATE include)
 
-set(protobuf_BUILD_TESTS OFF)
-set(protobuf_BUILD_SHARED_LIBS OFF)
+# Server
 
-FetchContent_MakeAvailable(protobuf)
+add_executable(server src/server_main.cpp src/chat_room.cpp src/server.cpp src/user_manager.cpp
+                      src/command_parser.cpp)
 
-add_library(chat_proto proto/schema.proto)
+target_link_libraries(server PRIVATE Boost::system Boost::thread Boost::program_options
+                                     spdlog::spdlog chat_proto)
 
-target_link_libraries(chat_proto
-    PUBLIC protobuf::libprotobuf
-)
-
-protobuf_generate(
-    TARGET chat_proto
-    LANGUAGE cpp
-)
-
-add_executable(server src/server_main.cpp src/chat_room.cpp src/server.cpp src/user_manager.cpp src/command_parser.cpp ${PROTO_SRCS})
-target_link_libraries(server PUBLIC Boost::system Boost::thread Boost::program_options spdlog::spdlog chat_proto)
-target_include_directories(server PUBLIC 
-    "${CMAKE_CURRENT_SOURCE_DIR}/include"
-)
-
-target_link_libraries(server
-    PRIVATE
-    protobuf::libprotobuf 
-)
-
-message(STATUS "chat will use C++ standard: ${STD}")
-
-install(TARGETS server client
-    RUNTIME DESTINATION bin
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib
-)
-
-
-set(CPACK_PACKAGE_NAME "otus_hws")
-set(CPACK_PACKAGE_DESCRIPTION "Outer joiner")
-set(CPACK_PACKAGE_CONTACT "mf_52@mail.com")
-set(CPACK_DEBIAN_PACKAGE_MAINTAINER "EqZotiQQQ")
-set(CPACK_DEBIAN_PACKAGE_SECTION "libs")
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.27)")
-
-set(CPACK_GENERATOR DEB)
-
-set(CPACK_PACKAGE_VERSION_MAJOR "${PROJECT_VERSION_MAJOR}")
-set(CPACK_PACKAGE_VERSION_MINOR "${PROJECT_VERSION_MINOR}")
-set(CPACK_PACKAGE_VERSION_PATCH "${PROJECT_VERSION_PATCH}")
-
-include(CPack)
+target_include_directories(server PRIVATE include)

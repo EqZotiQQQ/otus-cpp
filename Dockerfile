@@ -32,6 +32,8 @@ RUN apt-get update && \
         clang-format \
         libeigen3-dev \
         iputils-ping \
+        protobuf-compiler \
+        cmake-format \
         && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 

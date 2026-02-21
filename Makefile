@@ -9,13 +9,13 @@ CONTAINER_NAME := otus_container
 
 all:
 	$(CMAKE) -DPATCH_VERSION=42 -DWITH_BOOST_TEST=ON -DCMAKE_BUILD_TYPE=Debug -B $(BUILD_DIR)
-	$(CMAKE) --build $(BUILD_DIR)
+	$(CMAKE) --build $(BUILD_DIR) -- -j 16
 
 allc:
 	$(MAKE) clean
 	@mkdir -p $(BUILD_DIR)
 	$(CMAKE) -DPATCH_VERSION=42 -DWITH_BOOST_TEST=ON -DCMAKE_BUILD_TYPE=Debug -B $(BUILD_DIR)
-	$(CMAKE) --build $(BUILD_DIR)
+	$(CMAKE) --build $(BUILD_DIR) -- -j 16
 
 clean:
 	@echo "Cleaning build directory..."

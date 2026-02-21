@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+package chat;
+
+enum CommandType {
+  UNKNOWN = 0;
+  REGISTER = 1;
+  LOGIN = 2;
+  HISTORY = 3;
+  USERS = 4;
+  HELP = 5;
+}
+
+message AuthRequest {
+  string username = 1;
+  string password = 2;
+}
+
+message ChatMessage {
+  string text = 1;
+}
+
+message CommandRequest {
+  CommandType type = 1;
+  AuthRequest auth = 2; // only for LOGIN/REGISTER
+}
+
+message ClientMessage {
+  oneof payload {
+    CommandRequest command = 1;
+    ChatMessage chat = 2;
+  }
+}
+
+message AuthResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message ServerChatMessage {
+  string from = 1;
+  string text = 2;
+  int64 timestamp = 3;
+}
+
+message ServerMessage {
+  oneof payload {
+    AuthResponse auth = 1;
+    ServerChatMessage chat = 2;
+  }
+}

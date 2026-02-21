@@ -1,18 +1,29 @@
 #!/bin/bash
-FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(cpp|hpp)$')
+CPP_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(cpp|hpp)$')
 
-if [ -z "$FILES" ]; then
+if [ -z "$CPP_FILES" ]; then
     exit 0
 fi
 
 echo "Running clang-format..."
 
-for FILE in $FILES; do
+for FILE in $CPP_FILES; do
     if [ -f "$FILE" ]; then
         clang-format -i "$FILE"
         git add "$FILE"
     fi
 done
 
-exit 0
 
+CMAKE_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E "CMakeLists.txt|\.cmake$")
+
+if [ -z "$CMAKE_FILES" ]; then
+  exit 0
+fi
+
+echo "Formatting CMake files..."
+
+for file in $CMAKE_FILES; do
+  cmake-format -i "$file"
+  git add "$file"
+done
