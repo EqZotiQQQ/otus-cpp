@@ -45,13 +45,38 @@ target_include_directories(client PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}/include"
 )
 
+FetchContent_Declare(
+    protobuf
+    GIT_REPOSITORY https://github.com/protocolbuffers/protobuf.git
+    GIT_TAG v25.3
+)
 
-add_executable(server src/server_main.cpp src/chat_room.cpp src/server.cpp src/user_manager.cpp src/command_parser.cpp)
-target_link_libraries(server PUBLIC Boost::system Boost::thread Boost::program_options spdlog::spdlog)
+set(protobuf_BUILD_TESTS OFF)
+set(protobuf_BUILD_SHARED_LIBS OFF)
+
+FetchContent_MakeAvailable(protobuf)
+
+add_library(chat_proto proto/schema.proto)
+
+target_link_libraries(chat_proto
+    PUBLIC protobuf::libprotobuf
+)
+
+protobuf_generate(
+    TARGET chat_proto
+    LANGUAGE cpp
+)
+
+add_executable(server src/server_main.cpp src/chat_room.cpp src/server.cpp src/user_manager.cpp src/command_parser.cpp ${PROTO_SRCS})
+target_link_libraries(server PUBLIC Boost::system Boost::thread Boost::program_options spdlog::spdlog chat_proto)
 target_include_directories(server PUBLIC 
     "${CMAKE_CURRENT_SOURCE_DIR}/include"
 )
 
+target_link_libraries(server
+    PRIVATE
+    protobuf::libprotobuf 
+)
 
 message(STATUS "chat will use C++ standard: ${STD}")
 
