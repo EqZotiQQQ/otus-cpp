@@ -2,15 +2,6 @@ syntax = "proto3";
 
 package chat;
 
-enum CommandType {
-  UNKNOWN = 0;
-  REGISTER = 1;
-  LOGIN = 2;
-  HISTORY = 3;
-  USERS = 4;
-  HELP = 5;
-}
-
 message AuthRequest {
   string username = 1;
   string password = 2;
@@ -21,8 +12,7 @@ message ChatMessage {
 }
 
 message CommandRequest {
-  CommandType type = 1;
-  AuthRequest auth = 2; // only for LOGIN/REGISTER
+  string cmd = 1;
 }
 
 message ClientMessage {
@@ -43,9 +33,22 @@ message ServerChatMessage {
   int64 timestamp = 3;
 }
 
+// --- Users list
+message UsersResponse {
+  repeated string users = 1;
+}
+
+// --- History of messages
+message HistoryResponse {
+  repeated ServerChatMessage messages = 1;
+}
+
+
 message ServerMessage {
   oneof payload {
     AuthResponse auth = 1;
     ServerChatMessage chat = 2;
+    UsersResponse users = 3;
+    HistoryResponse history = 4;
   }
 }

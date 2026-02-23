@@ -45,3 +45,8 @@ else if state == Authenticated:
     broadcast message
 
 
+
+
+proto payload schema:
+
+[4 bytes describes payload length][payload]

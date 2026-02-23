@@ -5,9 +5,6 @@
 Command CommandParser::parse(const std::string& line) {
     Command cmd;
     cmd.raw = line;
-    if (!line.starts_with('/')) {
-        return cmd;
-    }
     std::istringstream iss(line);
     std::string token;
     iss >> token;
@@ -19,15 +16,15 @@ Command CommandParser::parse(const std::string& line) {
 }
 
 CommandType CommandParser::resolve_command(const std::string& cmd) {
-    if (cmd == "/register" || cmd == "/reg")
+    if (cmd == "register" || cmd == "reg")
         return CommandType::Register;
-    if (cmd == "/login")
+    if (cmd == "login")
         return CommandType::Login;
-    if (cmd == "/history" || cmd == "/hist")
+    if (cmd == "history" || cmd == "hist")
         return CommandType::History;
-    if (cmd == "/users" || cmd == "/u")
+    if (cmd == "users" || cmd == "u")
         return CommandType::Users;
-    if (cmd == "/help")
+    if (cmd == "help")
         return CommandType::Help;
     return CommandType::Unknown;
 }
