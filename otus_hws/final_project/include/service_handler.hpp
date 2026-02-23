@@ -30,12 +30,9 @@ public:
     State state() const;
     std::string name() const;
 
-    std::shared_ptr<SessionTransportInterface> transport();
+    std::shared_ptr<SessionTransportInterface> transport() const;
 
-    ~ClientSessionImpl() {
-        spdlog::info("Session destroyed");
-    }
-
+private:
     void handle_command(const chat::CommandRequest& cmd_request);
 
     void handle_chat(const chat::ChatMessage& chat_msg);
@@ -58,7 +55,6 @@ public:
 
     static int64_t now_timestamp();
 
-private:
 private:
     std::shared_ptr<SessionTransportInterface> transport_;
     ChatRoom& room_;

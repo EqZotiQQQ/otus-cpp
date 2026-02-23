@@ -9,7 +9,6 @@ ClientSessionImpl::ClientSessionImpl(std::shared_ptr<SessionTransportInterface> 
 }
 
 void ClientSessionImpl::on_message(const chat::ClientMessage& msg) {
-    spdlog::info("On message");
     if (msg.has_command()) {
         handle_command(msg.command());
         return;
@@ -25,9 +24,7 @@ void ClientSessionImpl::on_message(const chat::ClientMessage& msg) {
 
 void ClientSessionImpl::on_disconnect() {
     spdlog::info("Client disconnected {}", user_name_);
-    if (!user_name_.empty()) {
-        user_manager_.log_out(user_name_);
-    }
+    user_manager_.log_out(user_name_);
     room_.client_disconnect(shared_from_this());
 }
 
@@ -39,7 +36,7 @@ std::string ClientSessionImpl::name() const {
     return user_name_;
 }
 
-std::shared_ptr<SessionTransportInterface> ClientSessionImpl::transport() {
+std::shared_ptr<SessionTransportInterface> ClientSessionImpl::transport() const {
     return transport_;
 }
 
