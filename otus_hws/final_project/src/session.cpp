@@ -6,16 +6,16 @@
 
 #include "command_parser.hpp"
 
-UserSession::UserSession(tcp::socket socket, ChatRoom& room, UserManager& user_manager)
+Session::Session(tcp::socket socket, ChatRoom& room, UserManager& user_manager)
     : socket_(std::move(socket)), room_(room), user_manager_(user_manager), id_(boost::uuids::random_generator()()) {
     spdlog::info("New client connected with id {}", boost::uuids::to_string(id_));
 }
 
-void UserSession::start() {
+void Session::start() {
     do_read_header();
 }
 
-void UserSession::do_read_header() {
+void Session::do_read_header() {
     auto self = shared_from_this();
 
     boost::asio::async_read(socket_,
@@ -40,7 +40,7 @@ void UserSession::do_read_header() {
                             });
 }
 
-void UserSession::do_read_body() {
+void Session::do_read_body() {
     auto self = shared_from_this();
 
     boost::asio::async_read(socket_, boost::asio::buffer(incoming_buffer_), [this, self](boost::system::error_code ec, std::size_t) {
@@ -60,7 +60,7 @@ void UserSession::do_read_body() {
     });
 }
 
-void UserSession::send_protobuf(const chat::ServerMessage& msg) {
+void Session::send_protobuf(const chat::ServerMessage& msg) {
     std::string body;
     msg.SerializeToString(&body);
 
@@ -80,7 +80,7 @@ void UserSession::send_protobuf(const chat::ServerMessage& msg) {
     }
 }
 
-void UserSession::do_write() {
+void Session::do_write() {
     auto self = shared_from_this();
 
     boost::asio::async_write(socket_, boost::asio::buffer(write_queue_.front()), [this, self](boost::system::error_code ec, std::size_t) {
@@ -97,12 +97,12 @@ void UserSession::do_write() {
     });
 }
 
-void UserSession::send_unauth() {
+void Session::send_unauth() {
     spdlog::info("Unautharized");
     send_auth_response(false, "Unauthorized");
 }
 
-void UserSession::handle_protobuf_message(const chat::ClientMessage& msg) {
+void Session::handle_protobuf_message(const chat::ClientMessage& msg) {
     if (msg.has_command()) {
         spdlog::debug("Got command: {}", msg.command().cmd());
         handle_command(msg.command());
@@ -120,7 +120,7 @@ void UserSession::handle_protobuf_message(const chat::ClientMessage& msg) {
     }
 }
 
-void UserSession::handle_command(const chat::CommandRequest& cmd_request) {
+void Session::handle_command(const chat::CommandRequest& cmd_request) {
     auto& cmd = cmd_request.cmd();
     if (cmd.empty()) {
         spdlog::warn("Empty command");
@@ -174,7 +174,7 @@ void UserSession::handle_command(const chat::CommandRequest& cmd_request) {
     }
 }
 
-void UserSession::handle_chat(const chat::ChatMessage& chat_msg) {
+void Session::handle_chat(const chat::ChatMessage& chat_msg) {
     chat::ServerMessage server_msg;
     auto* chat = server_msg.mutable_chat();
 
@@ -185,7 +185,7 @@ void UserSession::handle_chat(const chat::ChatMessage& chat_msg) {
     room_.broadcast_proto(server_msg, shared_from_this());
 }
 
-void UserSession::handle_register(const std::string& user_name, const std::string& password) {
+void Session::handle_register(const std::string& user_name, const std::string& password) {
     if (user_name.empty() || password.empty()) {
         send_auth_response(false, "Invalid arguments");
         return;
@@ -199,7 +199,7 @@ void UserSession::handle_register(const std::string& user_name, const std::strin
     authenticate_success(user_name, password);
 }
 
-void UserSession::handle_login(const std::string& user_name, const std::string& password) {
+void Session::handle_login(const std::string& user_name, const std::string& password) {
     if (user_name.empty() || password.empty()) {
         send_auth_response(false, "Invalid arguments");
         return;
@@ -223,7 +223,7 @@ void UserSession::handle_login(const std::string& user_name, const std::string& 
     authenticate_success(user_name, password);
 }
 
-void UserSession::authenticate_success(const std::string& username, const std::string& password) {
+void Session::authenticate_success(const std::string& username, const std::string& password) {
     user_name_ = username;
     state_ = State::Authenticated;
 
@@ -243,7 +243,7 @@ void UserSession::authenticate_success(const std::string& username, const std::s
     room_.deliver_history_proto(shared_from_this());
 }
 
-void UserSession::send_auth_response(bool success, const std::string& message) {
+void Session::send_auth_response(bool success, const std::string& message) {
     chat::ServerMessage msg;
     auto* auth = msg.mutable_auth();
 
@@ -253,7 +253,7 @@ void UserSession::send_auth_response(bool success, const std::string& message) {
     send_protobuf(msg);
 }
 
-void UserSession::send_users_list() {
+void Session::send_users_list() {
     chat::ServerMessage msg;
     auto* chat = msg.mutable_chat();
 
@@ -264,7 +264,7 @@ void UserSession::send_users_list() {
     send_protobuf(msg);
 }
 
-void UserSession::send_help() {
+void Session::send_help() {
     chat::ServerMessage msg;
     auto* chat = msg.mutable_chat();
 
@@ -275,7 +275,7 @@ void UserSession::send_help() {
     send_protobuf(msg);
 }
 
-void UserSession::handle_disconnect() {
+void Session::handle_disconnect() {
     spdlog::info("Client disconnected {}", user_name_);
 
     if (!user_name_.empty()) {
@@ -286,18 +286,18 @@ void UserSession::handle_disconnect() {
     socket_.close();
 }
 
-int64_t UserSession::now_timestamp() {
+int64_t Session::now_timestamp() {
     return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 }
 
-boost::uuids::uuid UserSession::id() const {
+boost::uuids::uuid Session::id() const {
     return id_;
 }
 
-State UserSession::get_state() const {
+State Session::get_state() const {
     return state_;
 }
 
-std::string UserSession::name() const {
+std::string Session::name() const {
     return user_name_;
 }

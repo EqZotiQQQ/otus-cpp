@@ -18,9 +18,9 @@ using boost::asio::ip::tcp;
 
 enum class State { WaitingAuth, Authenticated };
 
-class UserSession : public std::enable_shared_from_this<UserSession> {
+class Session : public std::enable_shared_from_this<Session> {
 public:
-    explicit UserSession(tcp::socket socket, ChatRoom& room, UserManager& user_manager);
+    explicit Session(tcp::socket socket, ChatRoom& room, UserManager& user_manager);
 
     void start();
 

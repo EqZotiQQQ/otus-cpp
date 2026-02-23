@@ -8,7 +8,7 @@
 ChatRoom::ChatRoom(size_t history_depth) : history_depth_(history_depth), simple_history_{history_depth} {
 }
 
-void ChatRoom::client_join(std::shared_ptr<UserSession> session) {
+void ChatRoom::client_join(std::shared_ptr<Session> session) {
     sessions_.insert(session);
 }
 
@@ -26,11 +26,11 @@ std::string ChatRoom::get_logined_users() const {
     return names;
 }
 
-void ChatRoom::client_disconnect(std::shared_ptr<UserSession> session) {
+void ChatRoom::client_disconnect(std::shared_ptr<Session> session) {
     sessions_.erase(session);
 }
 
-void ChatRoom::broadcast_proto(const chat::ServerMessage& msg, const std::shared_ptr<UserSession>& ignore_user) {
+void ChatRoom::broadcast_proto(const chat::ServerMessage& msg, const std::shared_ptr<Session>& ignore_user) {
     StoredMessage stored{msg.chat().from(), msg.chat().text(), msg.chat().timestamp()};
     simple_history_.push_back(stored);
 
@@ -43,7 +43,7 @@ void ChatRoom::broadcast_proto(const chat::ServerMessage& msg, const std::shared
     }
 }
 
-void ChatRoom::deliver_history_proto(std::shared_ptr<UserSession> session) {
+void ChatRoom::deliver_history_proto(std::shared_ptr<Session> session) {
     for (const auto& msg : simple_history_) {
         chat::ServerMessage server_msg;
         auto* chat_msg = server_msg.mutable_chat();
