@@ -4,14 +4,8 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
-#include <chrono>
-#include <deque>
-#include <memory>
-#include <string>
-#include <vector>
 
 #include "chat_room.hpp"
-#include "schema.pb.h"
 #include "user_manager.hpp"
 
 using boost::asio::ip::tcp;

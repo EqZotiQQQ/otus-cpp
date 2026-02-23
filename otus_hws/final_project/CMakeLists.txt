@@ -33,26 +33,21 @@ target_include_directories(chat_proto PUBLIC ${GENERATED_DIR})
 
 # Client
 
-add_executable(client src/client_main.cpp src/client.cpp)
+add_library(client_lib src/client.cpp)
+target_link_libraries(client_lib PUBLIC Boost::system Boost::thread Boost::program_options
+                                        spdlog::spdlog chat_proto)
+target_include_directories(client_lib PUBLIC include)
 
-target_link_libraries(client PRIVATE Boost::system Boost::thread Boost::program_options
-                                     spdlog::spdlog chat_proto)
-
-target_include_directories(client PRIVATE include)
+add_executable(client src/client_main.cpp)
+target_link_libraries(client PUBLIC client_lib)
 
 # Server
 
-add_executable(server src/server_main.cpp src/chat_room.cpp src/server.cpp src/user_manager.cpp
-                      src/command_parser.cpp src/session.cpp)
+add_library(server_lib src/chat_room.cpp src/server.cpp src/user_manager.cpp src/command_parser.cpp
+                       src/session.cpp)
+target_link_libraries(server_lib PUBLIC Boost::system Boost::thread Boost::program_options
+                                        spdlog::spdlog chat_proto)
+target_include_directories(server_lib PUBLIC include)
 
-target_link_libraries(server PRIVATE Boost::system Boost::thread Boost::program_options
-                                     spdlog::spdlog chat_proto)
-
-target_include_directories(server PRIVATE include)
-
-# if(WITH_BOOST_TEST) enable_testing() find_package(Boost 1.70 REQUIRED COMPONENTS
-# unit_test_framework) add_executable(test_integrational tests/test_integrational.cpp)
-# target_include_directories( test_chat PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include" )
-# target_link_libraries(test_chat PRIVATE Boost::unit_test_framework bulk_lib)
-# target_compile_options(test_chat PRIVATE -Wall -Wextra -pedantic -Werror ) add_test( NAME test
-# COMMAND $<TARGET_FILE:test_chat> ) endif()
+add_executable(server src/server_main.cpp)
+target_link_libraries(server PUBLIC server_lib)
