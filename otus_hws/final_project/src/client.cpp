@@ -11,27 +11,22 @@ Client::Client(boost::asio::io_context& io, tcp::resolver::results_type endpoint
     do_connect(endpoints);
 }
 
-// Новый единый метод
 void Client::write(const std::string& text) {
     chat::ClientMessage proto_msg;
 
     if (!text.empty() && text[0] == '/') {
-        // Это команда
         auto* cmd = proto_msg.mutable_command();
-        cmd->set_cmd(text.substr(1));  // без '/'
-        spdlog::info("Sending command: {}", text);
+        cmd->set_cmd(text.substr(1));
+        spdlog::debug("Sending command: {}", text);
     } else {
-        // Это обычный чат
         auto* chat_msg = proto_msg.mutable_chat();
         chat_msg->set_text(text);
-        spdlog::info("Sending chat message: {}", text);
+        spdlog::debug("Sending chat message: {}", text);
     }
 
-    // Отправка
     write(proto_msg);
 }
 
-// Существующий метод сериализации protobuf и отправки
 void Client::write(const chat::ClientMessage& msg) {
     std::string body;
     msg.SerializeToString(&body);
