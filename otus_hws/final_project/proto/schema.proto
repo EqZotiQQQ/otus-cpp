@@ -33,12 +33,10 @@ message ServerChatMessage {
   int64 timestamp = 3;
 }
 
-// --- Users list
 message UsersResponse {
   repeated string users = 1;
 }
 
-// --- History of messages
 message HistoryResponse {
   repeated ServerChatMessage messages = 1;
 }
