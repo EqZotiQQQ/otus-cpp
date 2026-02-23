@@ -1,11 +1,14 @@
 #include "user_manager.hpp"
 
+#include <spdlog/spdlog.h>
+
 UserManager::UserManager() {
 }
 
 bool UserManager::register_user(const std::string& user_name, const std::string& password) {
     if (!is_registered(user_name)) {
         const auto [it, inserted] = users_.emplace(user_name, UserData{user_name, password, UserState::ACTIVE});
+        spdlog::info("Registered new user: {}", user_name);
         return inserted;
     }
     return false;
@@ -26,6 +29,7 @@ bool UserManager::authenticate(const UserData& user) {
         if (login_success) {
             user_data.state = UserState::ACTIVE;
         }
+        spdlog::info("User authenticated: {}", user.user_name);
         return login_success;
     }
     return false;
@@ -34,6 +38,7 @@ bool UserManager::authenticate(const UserData& user) {
 bool UserManager::log_out(const std::string& user_name) {
     if (is_logined(user_name)) {
         users_[user_name].state = UserState::INACTIVE;
+        spdlog::info("User log out: {}", user_name);
         return true;
     }
     return false;

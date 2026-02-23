@@ -1,6 +1,6 @@
 #include "client.hpp"
 
-#include <arpa/inet.h>  // htonl, ntohl
+#include <arpa/inet.h>
 #include <spdlog/spdlog.h>
 
 #include <cstring>

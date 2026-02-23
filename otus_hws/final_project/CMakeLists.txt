@@ -44,10 +44,19 @@ target_link_libraries(client PUBLIC client_lib)
 # Server
 
 add_library(server_lib src/chat_room.cpp src/server.cpp src/user_manager.cpp src/command_parser.cpp
-                       src/session.cpp)
+                       src/session_impl.cpp src/network_session.cpp)
 target_link_libraries(server_lib PUBLIC Boost::system Boost::thread Boost::program_options
                                         spdlog::spdlog chat_proto)
 target_include_directories(server_lib PUBLIC include)
 
 add_executable(server src/server_main.cpp)
 target_link_libraries(server PUBLIC server_lib)
+
+if(WITH_BOOST_TEST)
+    enable_testing()
+    find_package(Boost 1.70 REQUIRED COMPONENTS unit_test_framework)
+    add_executable(test_server_lib tests/test_server.cpp)
+    target_include_directories(test_server_lib PRIVATE include)
+    target_link_libraries(test_server_lib PRIVATE Boost::unit_test_framework server_lib)
+    add_test(NAME test COMMAND $<TARGET_FILE:test_server_lib>)
+endif()
