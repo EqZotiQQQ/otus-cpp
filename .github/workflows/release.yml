@@ -15,7 +15,7 @@ jobs:
           submodules: true
       - run: sudo apt-get update && sudo apt-get install libboost-test-dev libc++-dev libboost-all-dev libc++abi-dev clang libflatbuffers-dev libsfml-dev flatbuffers-compiler libspdlog-dev libeigen3-dev protobuf-compiler -y
       - run: CC=clang CXX=clang++ cmake . -DPATCH_VERSION=${{ github.run_number }} -DCMAKE_BUILD_TYPE=Debug -DWITH_BOOST_TEST=ON
-      - run: cmake --build .
+      - run: cmake --build . -- -j 8
       - run: cmake --build . --target test
       - run: cmake --build . --target package
       - name: Create Release
