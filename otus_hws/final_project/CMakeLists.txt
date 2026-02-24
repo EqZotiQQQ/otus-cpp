@@ -60,3 +60,20 @@ if(WITH_BOOST_TEST)
     target_link_libraries(test_server_lib PRIVATE Boost::unit_test_framework server_lib)
     add_test(NAME test COMMAND $<TARGET_FILE:test_server_lib>)
 endif()
+
+
+set(CPACK_PACKAGE_NAME "otus_hws")
+set(CPACK_PACKAGE_DESCRIPTION "chat")
+set(CPACK_PACKAGE_CONTACT "mf_52@mail.com")
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "EqZotiQQQ")
+set(CPACK_DEBIAN_PACKAGE_SECTION "libs")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.27)")
+
+set(CPACK_GENERATOR DEB)
+
+set(CPACK_PACKAGE_VERSION_MAJOR "${PROJECT_VERSION_MAJOR}")
+set(CPACK_PACKAGE_VERSION_MINOR "${PROJECT_VERSION_MINOR}")
+set(CPACK_PACKAGE_VERSION_PATCH "${PROJECT_VERSION_PATCH}")
+
+include(CPack)
+
