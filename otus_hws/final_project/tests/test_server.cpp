@@ -116,7 +116,8 @@ BOOST_AUTO_TEST_CASE(test_send_help_and_users) {
 
     BOOST_CHECK(!transport->sent_messages.empty());
     auto last = transport->sent_messages.back();
-    BOOST_CHECK(last.chat().text() == "Commands: /register, /login, /history, /users, /help");
+    BOOST_CHECK(last.chat().text() ==
+                "Commands: /register ${name} ${password}, /reg  ${name} ${password}, /login ${name} ${password}, /history, /users, /help");
 
     // Users list without auth
     chat::CommandRequest users;
