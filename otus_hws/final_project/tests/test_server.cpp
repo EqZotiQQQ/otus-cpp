@@ -5,12 +5,10 @@
 #include <boost/test/included/unit_test.hpp>
 
 #include "chat_room.hpp"
-#include "command_parser.hpp"
 #include "service_handler.hpp"
 #include "transport_interface.hpp"
 #include "user_manager.hpp"
 
-// Mock Transport
 struct MockTransport : public SessionTransportInterface {
     std::vector<chat::ServerMessage> sent_messages;
 
@@ -26,7 +24,6 @@ struct MockTransport : public SessionTransportInterface {
     }
 };
 
-// Mock ChatRoom
 struct MockChatRoom : public ChatRoom {
     std::vector<std::shared_ptr<ClientSessionImpl>> joined_clients;
 
@@ -44,7 +41,6 @@ struct MockChatRoom : public ChatRoom {
     }
 };
 
-// Simple UserManager
 struct MockUserManager : public UserManager {
     std::map<std::string, std::string> users;
 
