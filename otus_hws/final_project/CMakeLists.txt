@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.28.3)
 
-project(chat VERSION 0.0.1)
+set(PATCH_VERSION "1" CACHE INTERNAL "Patch version")
+project(chat VERSION 0.0.${PATCH_VERSION})
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
