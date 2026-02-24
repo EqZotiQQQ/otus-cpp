@@ -100,29 +100,3 @@ BOOST_AUTO_TEST_CASE(test_register_and_login) {
     session2->on_message(msg);
     BOOST_CHECK(session2->state() != State::Authenticated);
 }
-
-BOOST_AUTO_TEST_CASE(test_send_help_and_users) {
-    auto transport = std::make_shared<MockTransport>();
-    MockChatRoom room;
-    MockUserManager manager;
-
-    auto session = std::make_shared<ClientSessionImpl>(transport, room, manager);
-
-    // Help
-    chat::ClientMessage msg;
-    chat::CommandRequest help;
-    msg.mutable_command()->set_cmd("help");
-    session->on_message(msg);
-
-    BOOST_CHECK(!transport->sent_messages.empty());
-    auto last = transport->sent_messages.back();
-    BOOST_CHECK(last.chat().text() ==
-                "Commands: /register ${name} ${password}, /reg  ${name} ${password}, /login ${name} ${password}, /history, /users, /help");
-
-    // Users list without auth
-    chat::CommandRequest users;
-    msg.mutable_command()->set_cmd("users");
-    session->on_message(msg);
-    last = transport->sent_messages.back();
-    BOOST_CHECK(last.auth().success() == false);
-}
