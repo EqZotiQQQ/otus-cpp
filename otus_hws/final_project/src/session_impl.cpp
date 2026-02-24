@@ -64,10 +64,10 @@ void ClientSessionImpl::handle_command(const chat::CommandRequest& cmd_request) 
             }
             break;
         case CommandType::History:
-            require_auth([this] { room_.deliver_history_proto(shared_from_this()); });
+            wrap_require_auth([this] { room_.deliver_history_proto(shared_from_this()); });
             break;
         case CommandType::Users:
-            require_auth([this] { send_users_list(); });
+            wrap_require_auth([this] { send_users_list(); });
             break;
         case CommandType::Help:
             send_help();
@@ -122,13 +122,13 @@ void ClientSessionImpl::authenticate_success(const std::string& user, const std:
     chat::ServerMessage welcome;
     auto* chat = welcome.mutable_chat();
     chat->set_from("server");
-    chat->set_text("Welcome " + user + "!");
+    chat->set_text(user + " Welcome to the club buddy!");
     chat->set_timestamp(now_timestamp());
 
     transport_->send_protobuf(welcome);
 }
 
-void ClientSessionImpl::require_auth(auto&& fn) {
+void ClientSessionImpl::wrap_require_auth(auto&& fn) {
     if (state_ != State::Authenticated) {
         send_unauth();
         return;
@@ -147,7 +147,7 @@ void ClientSessionImpl::send_auth_response(bool success, const std::string& mess
 }
 
 void ClientSessionImpl::send_users_list() {
-    spdlog::info("User requested for a user list");
+    spdlog::debug("User requested for a user list");
 
     chat::ServerMessage msg;
     auto* chat = msg.mutable_chat();
@@ -160,7 +160,7 @@ void ClientSessionImpl::send_users_list() {
 }
 
 void ClientSessionImpl::send_help() {
-    spdlog::info("User requested for a help message");
+    spdlog::debug("User requested for a help message");
 
     chat::ServerMessage msg;
     auto* chat = msg.mutable_chat();

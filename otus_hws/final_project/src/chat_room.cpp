@@ -80,3 +80,11 @@ void ChatRoom::deliver_history_proto(const std::shared_ptr<ClientSessionImpl>& s
         session->transport()->send_protobuf(server_msg);
     }
 }
+
+size_t ChatRoom::users_size() const {
+    return sessions_.size();
+}
+
+size_t ChatRoom::hist_size() const {
+    return simple_history_.size();
+}

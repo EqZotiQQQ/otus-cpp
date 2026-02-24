@@ -24,40 +24,30 @@ public:
     ClientSessionImpl(std::shared_ptr<SessionTransportInterface> transport, ChatRoom& room, UserManager& user_manager);
 
     void on_message(const chat::ClientMessage& msg);
-
     void on_disconnect();
 
     State state() const;
     std::string name() const;
-
     std::shared_ptr<SessionTransportInterface> transport() const;
 
 private:
     void handle_command(const chat::CommandRequest& cmd_request);
-
     void handle_chat(const chat::ChatMessage& chat_msg);
-
     void handle_register(const std::string& user, const std::string& pass);
-
     void handle_login(const std::string& user, const std::string& pass);
-
     void authenticate_success(const std::string& user, const std::string& pass);
-
-    void require_auth(auto&& fn);
+    void wrap_require_auth(auto&& fn);
 
     void send_auth_response(bool success, const std::string& message);
-
     void send_users_list();
-
     void send_help();
-
     void send_unauth();
 
     static int64_t now_timestamp();
 
 private:
-    std::shared_ptr<SessionTransportInterface> transport_;
     ChatRoom& room_;
+    std::shared_ptr<SessionTransportInterface> transport_;
     UserManager& user_manager_;
 
     State state_ = State::WaitingAuth;

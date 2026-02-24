@@ -25,10 +25,12 @@ private:
     void handle_server_message(const chat::ServerMessage& msg);
 
 private:
-    std::array<char, 4> header_;
-    std::vector<char> body_;
     boost::asio::io_context& io_;
     tcp::socket socket_;
-    boost::asio::streambuf buffer_;
+
     std::deque<std::string> write_queue_;
+
+    std::array<char, 4> header_;
+    std::vector<char> body_;
+    boost::asio::streambuf buffer_;
 };

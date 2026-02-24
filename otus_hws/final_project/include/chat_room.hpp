@@ -40,14 +40,11 @@ public:
     void client_join(const std::shared_ptr<ClientSessionImpl>& session);
     void client_disconnect(const std::shared_ptr<ClientSessionImpl>& session);
     void broadcast_proto(const chat::ServerMessage& msg, const std::shared_ptr<ClientSessionImpl>& ignore_user);
-    [[nodiscard]] std::string get_logined_users() const;
     void deliver_history_proto(const std::shared_ptr<ClientSessionImpl>& session);
-    [[nodiscard]] size_t users_size() const {
-        return sessions_.size();
-    }
-    [[nodiscard]] size_t hist_size() const {
-        return simple_history_.size();
-    }
+
+    [[nodiscard]] std::string get_logined_users() const;
+    [[nodiscard]] size_t users_size() const;
+    [[nodiscard]] size_t hist_size() const;
 
 private:
     size_t history_depth_;

@@ -39,9 +39,9 @@ void NetworkSession::do_read_header() {
     boost::asio::async_read(socket_,
                             boost::asio::buffer(&incoming_len_, sizeof(incoming_len_)),
                             [this, self](boost::system::error_code ec, std::size_t) {
-                                spdlog::info("Got new message from {}", chat_impl->name());
+                                spdlog::debug("Got new message from {}", chat_impl->name());
                                 if (ec) {
-                                    spdlog::info("Got new message from {} DC: {}", chat_impl->name(), ec.message());
+                                    spdlog::debug("Got new message from {} DC: {}", chat_impl->name(), ec.message());
                                     chat_impl->on_disconnect();
                                     return;
                                 }
