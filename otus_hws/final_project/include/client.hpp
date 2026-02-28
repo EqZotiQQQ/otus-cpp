@@ -31,8 +31,9 @@ private:
 
     void start_heartbeat_timer();
     void send_heartbeat();
-    void reset_timer();
+    void reset_heartbeat_timer();
     void cancel_timer();
+    void set_heartbeat_timeout_timer();
 
 private:
     boost::asio::io_context& io_;
@@ -45,6 +46,7 @@ private:
     boost::asio::streambuf buffer_;
 
     boost::asio::steady_timer heartbeat_timer_;
+    boost::asio::steady_timer heartbeat_timeout_timer_;
     bool connection_established_ = false;
     int64_t server_last_seen_ = 0;
 };

@@ -6,13 +6,13 @@
 #include <chrono>
 #include <cstring>
 #include <memory>
-#include <mutex>
 
 #include "schema.pb.h"
 
-constexpr inline std::chrono::seconds TIMEER_HEARTBEAT{4};
+constexpr inline std::chrono::seconds HEARTBEAT_INTERVAL{4};
+constexpr inline std::chrono::seconds HEARTBEAT_TIMEOUT{4};
 
-Client::Client(boost::asio::io_context& io) : io_(io), socket_(io), heartbeat_timer_{io} {
+Client::Client(boost::asio::io_context& io) : io_(io), socket_(io), heartbeat_timer_{io}, heartbeat_timeout_timer_{io} {
 }
 
 void Client::write(const std::string& text) {
@@ -57,7 +57,7 @@ void Client::write(const chat::ClientMessage& msg) {
         }
     });
 
-    reset_timer();  // just reset it because we recently sent a message
+    reset_heartbeat_timer();  // just reset it because we recently sent a message
 }
 
 void Client::close() {
@@ -110,13 +110,13 @@ void Client::do_read_body(std::size_t len) {
             socket_.close();
         }
 
-        reset_timer();  // just reset it because we recently received a message
+        reset_heartbeat_timer();  // just reset it because we recently received a message
     });
 }
 
 void Client::start_heartbeat_timer() {
     spdlog::info("start timer heartbeat");
-    reset_timer();
+    reset_heartbeat_timer();
 }
 
 void Client::handle_server_message(const chat::ServerMessage& msg) {
@@ -144,6 +144,7 @@ void Client::handle_server_message(const chat::ServerMessage& msg) {
 
     if (msg.has_heartbeet()) {
         spdlog::info("Pong");
+        heartbeat_timeout_timer_.cancel();
     }
 
     server_last_seen_ = std::chrono::system_clock::now().time_since_epoch().count();
@@ -157,11 +158,30 @@ void Client::send_heartbeat() {
 
     spdlog::info("Ping");
     write(clinet_msg);
+    set_heartbeat_timeout_timer();
 }
 
-void Client::reset_timer() {
+void Client::set_heartbeat_timeout_timer() {
+    heartbeat_timeout_timer_.cancel();
+    heartbeat_timeout_timer_.expires_after(HEARTBEAT_TIMEOUT);
+
+    auto self = shared_from_this();
+
+    heartbeat_timer_.async_wait([self](const boost::system::error_code& ec) {
+        if (ec == boost::asio::error::operation_aborted) {
+            return;
+        }
+
+        if (!ec) {
+            spdlog::error("Connection lost due to timeout");
+            exit(0);
+        }
+    });
+}
+
+void Client::reset_heartbeat_timer() {
     heartbeat_timer_.cancel();
-    heartbeat_timer_.expires_after(TIMEER_HEARTBEAT);
+    heartbeat_timer_.expires_after(HEARTBEAT_INTERVAL);
 
     auto self = shared_from_this();
 
