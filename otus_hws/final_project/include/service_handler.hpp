@@ -42,6 +42,7 @@ private:
     void send_users_list();
     void send_help();
     void send_unauth();
+    void send_heartbeat_response();
 
     static int64_t now_timestamp();
 
@@ -52,4 +53,5 @@ private:
 
     State state_ = State::WaitingAuth;
     std::string user_name_;
+    int64_t last_seen_ = 0;
 };

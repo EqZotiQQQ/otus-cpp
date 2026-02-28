@@ -1,3 +1,5 @@
+#include <chrono>
+
 #include "command_parser.hpp"
 #include "service_handler.hpp"
 #include "spdlog/spdlog.h"
@@ -9,17 +11,19 @@ ClientSessionImpl::ClientSessionImpl(std::shared_ptr<SessionTransportInterface> 
 }
 
 void ClientSessionImpl::on_message(const chat::ClientMessage& msg) {
-    if (msg.has_command()) {
+    if (msg.has_heartbeet()) {
+        send_heartbeat_response();
+    } else if (msg.has_command()) {
         handle_command(msg.command());
         return;
-    }
-    if (msg.has_chat()) {
+    } else if (msg.has_chat()) {
         if (state_ != State::Authenticated) {
             send_unauth();
             return;
         }
         handle_chat(msg.chat());
     }
+    last_seen_ = std::chrono::system_clock::now().time_since_epoch().count();
 }
 
 void ClientSessionImpl::on_disconnect() {
@@ -179,4 +183,13 @@ void ClientSessionImpl::send_unauth() {
 
 int64_t ClientSessionImpl::now_timestamp() {
     return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+}
+
+void ClientSessionImpl::send_heartbeat_response() {
+    chat::ServerMessage server_msg;
+    auto* hb_msg = server_msg.mutable_heartbeet();
+
+    hb_msg->set_timestamp(std::chrono::system_clock::now().time_since_epoch().count());
+
+    transport_->send_protobuf(server_msg);
 }

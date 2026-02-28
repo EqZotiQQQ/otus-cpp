@@ -3,12 +3,16 @@
 #include <arpa/inet.h>
 #include <spdlog/spdlog.h>
 
+#include <chrono>
 #include <cstring>
+#include <memory>
+#include <mutex>
 
 #include "schema.pb.h"
 
-Client::Client(boost::asio::io_context& io, tcp::resolver::results_type endpoints) : io_(io), socket_(io) {
-    do_connect(endpoints);
+constexpr inline std::chrono::seconds TIMEER_HEARTBEAT{4};
+
+Client::Client(boost::asio::io_context& io) : io_(io), socket_(io), heartbeat_timer_{io} {
 }
 
 void Client::write(const std::string& text) {
@@ -25,6 +29,14 @@ void Client::write(const std::string& text) {
     }
 
     write(proto_msg);
+}
+
+void Client::start(tcp::resolver::results_type endpoints) {
+    if (!connection_established_) {
+        // lazy connect
+        do_connect(endpoints);
+        connection_established_ = true;
+    }
 }
 
 void Client::write(const chat::ClientMessage& msg) {
@@ -44,6 +56,8 @@ void Client::write(const chat::ClientMessage& msg) {
             do_write();
         }
     });
+
+    reset_timer();  // just reset it because we recently sent a message
 }
 
 void Client::close() {
@@ -55,6 +69,8 @@ void Client::do_connect(const tcp::resolver::results_type& endpoints) {
         if (!ec) {
             spdlog::info("Connection established");
             do_read();
+
+            start_heartbeat_timer();
         } else {
             spdlog::error("Connect failed: {}", ec.message());
         }
@@ -93,7 +109,14 @@ void Client::do_read_body(std::size_t len) {
             spdlog::error("Read body error: {}", ec.message());
             socket_.close();
         }
+
+        reset_timer();  // just reset it because we recently received a message
     });
+}
+
+void Client::start_heartbeat_timer() {
+    spdlog::info("start timer heartbeat");
+    reset_timer();
 }
 
 void Client::handle_server_message(const chat::ServerMessage& msg) {
@@ -118,6 +141,39 @@ void Client::handle_server_message(const chat::ServerMessage& msg) {
             spdlog::info("[{}] {}", m.from(), m.text());
         }
     }
+
+    if (msg.has_heartbeet()) {
+        spdlog::info("Pong");
+    }
+
+    server_last_seen_ = std::chrono::system_clock::now().time_since_epoch().count();
+}
+
+void Client::send_heartbeat() {
+    chat::ClientMessage clinet_msg;
+
+    auto* mut_hb = clinet_msg.mutable_heartbeet();
+    mut_hb->set_timestamp(std::chrono::system_clock::now().time_since_epoch().count());
+
+    spdlog::info("Ping");
+    write(clinet_msg);
+}
+
+void Client::reset_timer() {
+    heartbeat_timer_.cancel();
+    heartbeat_timer_.expires_after(TIMEER_HEARTBEAT);
+
+    auto self = shared_from_this();
+
+    heartbeat_timer_.async_wait([self](const boost::system::error_code& ec) {
+        if (ec == boost::asio::error::operation_aborted) {
+            return;
+        }
+
+        if (!ec) {
+            self->send_heartbeat();
+        }
+    });
 }
 
 void Client::do_write() {

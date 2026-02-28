@@ -15,10 +15,15 @@ message CommandRequest {
   string cmd = 1;
 }
 
+message Heartbeet {
+  int64 timestamp = 1;
+}
+
 message ClientMessage {
   oneof payload {
     CommandRequest command = 1;
     ChatMessage chat = 2;
+    Heartbeet heartbeet = 3;
   }
 }
 
@@ -41,12 +46,12 @@ message HistoryResponse {
   repeated ServerChatMessage messages = 1;
 }
 
-
 message ServerMessage {
   oneof payload {
     AuthResponse auth = 1;
     ServerChatMessage chat = 2;
     UsersResponse users = 3;
     HistoryResponse history = 4;
+    Heartbeet heartbeet = 5;
   }
 }
