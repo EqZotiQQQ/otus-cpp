@@ -129,7 +129,6 @@ void Client::do_read_body(std::size_t len) {
 }
 
 void Client::start_heartbeat_timer() {
-    spdlog::info("start timer heartbeat");
     reset_heartbeat_timer();
 }
 
