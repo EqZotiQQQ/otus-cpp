@@ -17,6 +17,6 @@ public:
     virtual ~SessionTransportInterface() = default;
 
     virtual void send_protobuf(const chat::ServerMessage& msg) = 0;
-    virtual void close() = 0;
+    virtual void disconnect() = 0;
     virtual boost::uuids::uuid id() const = 0;
 };

@@ -19,7 +19,7 @@ struct MockTransport : public SessionTransportInterface {
     boost::uuids::uuid id() const override {
         return boost::uuids::uuid{};
     }
-    void close() override {
+    void disconnect() override {
         return;
     }
 };

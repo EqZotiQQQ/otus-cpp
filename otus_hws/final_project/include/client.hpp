@@ -35,6 +35,8 @@ private:
     void cancel_timer();
     void set_heartbeat_timeout_timer();
 
+    void handle_disconnect();
+
 private:
     boost::asio::io_context& io_;
     tcp::socket socket_;

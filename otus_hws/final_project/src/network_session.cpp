@@ -1,8 +1,18 @@
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_io.hpp>
+#include <system_error>
+
 #include "network_handler.hpp"
 #include "service_handler.hpp"
 
-NetworkSession::NetworkSession(tcp::socket socket, ChatRoom& room, UserManager& user_manager)
-    : socket_(std::move(socket)), id_(boost::uuids::random_generator()()), room_(room), user_manager_(user_manager) {
+constexpr inline std::chrono::seconds HEARTBEAT_TIMEOUT{4};
+
+NetworkSession::NetworkSession(boost::asio::io_context& io, tcp::socket socket, ChatRoom& room, UserManager& user_manager)
+    : socket_(std::move(socket)),
+      connection_uuid_(boost::uuids::random_generator()()),
+      room_(room),
+      user_manager_(user_manager),
+      last_seen_client_timer_(io) {
 }
 
 void NetworkSession::start() {
@@ -26,12 +36,8 @@ void NetworkSession::send_protobuf(const chat::ServerMessage& msg) {
         do_write();
 }
 
-void NetworkSession::close() {
-    socket_.close();
-}
-
 boost::uuids::uuid NetworkSession::id() const {
-    return id_;
+    return connection_uuid_;
 }
 
 void NetworkSession::do_read_header() {
@@ -40,14 +46,16 @@ void NetworkSession::do_read_header() {
                             boost::asio::buffer(&incoming_len_, sizeof(incoming_len_)),
                             [this, self](boost::system::error_code ec, std::size_t) {
                                 spdlog::debug("Got new message from {}", chat_impl->name());
+
                                 if (ec) {
-                                    spdlog::debug("Got new message from {} DC: {}", chat_impl->name(), ec.message());
-                                    chat_impl->on_disconnect();
+                                    disconnect();
                                     return;
                                 }
+
                                 incoming_len_ = ntohl(incoming_len_);
                                 incoming_buffer_.resize(incoming_len_);
                                 do_read_body();
+                                update_last_seen();
                             });
 }
 
@@ -55,7 +63,7 @@ void NetworkSession::do_read_body() {
     auto self = shared_from_this();
     boost::asio::async_read(socket_, boost::asio::buffer(incoming_buffer_), [this, self](boost::system::error_code ec, std::size_t) {
         if (ec) {
-            chat_impl->on_disconnect();
+            disconnect();
             return;
         }
         chat::ClientMessage msg;
@@ -63,18 +71,58 @@ void NetworkSession::do_read_body() {
             chat_impl->on_message(msg);
         }
         do_read_header();
+        update_last_seen();
     });
+}
+
+void NetworkSession::update_last_seen() {
+    spdlog::info("update_last_seen");
+    set_clinet_silent_timeout_timer();
+    last_seen_client_stamp_ns_ = std::chrono::system_clock::now().time_since_epoch().count();
+}
+
+void NetworkSession::disconnect() {
+    if (!is_alive_) {
+        return;
+    }
+    spdlog::warn("Disconnecting client {} from server due to not seen for a while", boost::uuids::to_string(connection_uuid_));
+    last_seen_client_timer_.cancel();
+    chat_impl->on_disconnect();
+    socket_.close();
+    is_alive_ = false;
+}
+
+void NetworkSession::set_clinet_silent_timeout_timer() {
+    last_seen_client_timer_.cancel();
+    last_seen_client_timer_.expires_after(HEARTBEAT_TIMEOUT);
+
+    auto self = shared_from_this();
+
+    last_seen_client_timer_.async_wait([self](const boost::system::error_code& ec) {
+        if (ec == boost::asio::error::operation_aborted) {
+            return;
+        }
+
+        if (!ec) {
+            self->disconnect();
+        }
+    });
+}
+
+void NetworkSession::unsed_clinet_silent_timeout_timer() {
+    last_seen_client_timer_.cancel();
 }
 
 void NetworkSession::do_write() {
     auto self = shared_from_this();
     boost::asio::async_write(socket_, boost::asio::buffer(write_queue_.front()), [this, self](boost::system::error_code ec, std::size_t) {
         if (ec) {
-            chat_impl->on_disconnect();
+            self->disconnect();
             return;
         }
         write_queue_.pop_front();
-        if (!write_queue_.empty())
+        if (!write_queue_.empty()) {
             do_write();
+        }
     });
 }

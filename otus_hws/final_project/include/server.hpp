@@ -18,6 +18,7 @@ private:
     void do_accept();
 
 private:
+    boost::asio::io_context& io_;
     tcp::acceptor acceptor_;
     ChatRoom room_;
     UserManager user_manager_;

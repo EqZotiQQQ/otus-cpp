@@ -9,7 +9,7 @@
 
 #include "schema.pb.h"
 
-constexpr inline std::chrono::seconds HEARTBEAT_INTERVAL{4};
+constexpr inline std::chrono::seconds HEARTBEAT_INTERVAL{12};
 constexpr inline std::chrono::seconds HEARTBEAT_TIMEOUT{4};
 
 Client::Client(boost::asio::io_context& io) : io_(io), socket_(io), heartbeat_timer_{io}, heartbeat_timeout_timer_{io} {
@@ -61,7 +61,7 @@ void Client::write(const chat::ClientMessage& msg) {
 }
 
 void Client::close() {
-    boost::asio::post(io_, [this]() { socket_.close(); });
+    boost::asio::post(io_, [this]() { handle_disconnect(); });
 }
 
 void Client::do_connect(const tcp::resolver::results_type& endpoints) {
@@ -88,9 +88,19 @@ void Client::do_read() {
             do_read_body(len);
         } else {
             spdlog::error("Read header error: {}", ec.message());
-            socket_.close();
+            handle_disconnect();
         }
     });
+}
+
+void Client::handle_disconnect() {
+    heartbeat_timer_.cancel();
+    heartbeat_timeout_timer_.cancel();
+    connection_established_ = false;
+
+    socket_.close();
+    spdlog::info("Handle disconnect");
+    exit(0);
 }
 
 void Client::do_read_body(std::size_t len) {
@@ -107,7 +117,7 @@ void Client::do_read_body(std::size_t len) {
             do_read();
         } else {
             spdlog::error("Read body error: {}", ec.message());
-            socket_.close();
+            handle_disconnect();
         }
 
         reset_heartbeat_timer();  // just reset it because we recently received a message
@@ -167,7 +177,7 @@ void Client::set_heartbeat_timeout_timer() {
 
     auto self = shared_from_this();
 
-    heartbeat_timer_.async_wait([self](const boost::system::error_code& ec) {
+    heartbeat_timeout_timer_.async_wait([self](const boost::system::error_code& ec) {
         if (ec == boost::asio::error::operation_aborted) {
             return;
         }
@@ -205,7 +215,7 @@ void Client::do_write() {
             }
         } else {
             spdlog::error("Write error: {}", ec.message());
-            socket_.close();
+            handle_disconnect();
         }
     });
 }

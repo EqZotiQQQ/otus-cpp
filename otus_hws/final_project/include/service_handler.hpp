@@ -53,5 +53,4 @@ private:
 
     State state_ = State::WaitingAuth;
     std::string user_name_;
-    int64_t last_seen_ = 0;
 };

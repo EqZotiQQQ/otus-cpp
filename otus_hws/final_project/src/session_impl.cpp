@@ -23,7 +23,6 @@ void ClientSessionImpl::on_message(const chat::ClientMessage& msg) {
         }
         handle_chat(msg.chat());
     }
-    last_seen_ = std::chrono::system_clock::now().time_since_epoch().count();
 }
 
 void ClientSessionImpl::on_disconnect() {
