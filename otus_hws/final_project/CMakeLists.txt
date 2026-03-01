@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.28.3)
 
-set(PATCH_VERSION "1" CACHE INTERNAL "Patch version")
+set(PATCH_VERSION
+    "1"
+    CACHE INTERNAL "Patch version")
 project(chat VERSION 0.0.${PATCH_VERSION})
 
 set(CMAKE_CXX_STANDARD 23)
@@ -34,23 +36,25 @@ target_include_directories(chat_proto PUBLIC ${GENERATED_DIR})
 
 # Client
 
-add_library(client_lib src/client.cpp)
+add_library(client_lib src/client/client.cpp)
 target_link_libraries(client_lib PUBLIC Boost::system Boost::thread Boost::program_options
                                         spdlog::spdlog chat_proto)
 target_include_directories(client_lib PUBLIC include)
 
-add_executable(client src/client_main.cpp)
+add_executable(client src/client/client_main.cpp)
 target_link_libraries(client PUBLIC client_lib)
 
 # Server
 
-add_library(server_lib src/chat_room.cpp src/server.cpp src/user_manager.cpp src/command_parser.cpp
-                       src/session_impl.cpp src/network_session.cpp)
+add_library(
+    server_lib
+    src/server/chat_room.cpp src/server/server.cpp src/server/user_manager.cpp
+    src/server/command_parser.cpp src/server/session_impl.cpp src/server/network_session.cpp)
 target_link_libraries(server_lib PUBLIC Boost::system Boost::thread Boost::program_options
                                         spdlog::spdlog chat_proto)
 target_include_directories(server_lib PUBLIC include)
 
-add_executable(server src/server_main.cpp)
+add_executable(server src/server/server_main.cpp)
 target_link_libraries(server PUBLIC server_lib)
 
 if(WITH_BOOST_TEST)
@@ -61,7 +65,6 @@ if(WITH_BOOST_TEST)
     target_link_libraries(test_server PRIVATE Boost::unit_test_framework server_lib)
     add_test(NAME test COMMAND $<TARGET_FILE:test_server>)
 endif()
-
 
 include(CPack)
 
@@ -75,8 +78,6 @@ set(CPACK_PACKAGE_VERSION_MINOR "${PROJECT_VERSION_MINOR}")
 set(CPACK_PACKAGE_VERSION_PATCH "${PROJECT_VERSION_PATCH}")
 set(CPACK_PACKAGE_CONTACT example@example.com)
 
-set(CPACK_PACKAGE_FILE_NAME
-    "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-Linux")
-    
-    
+set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-Linux")
+
 include(CPack)

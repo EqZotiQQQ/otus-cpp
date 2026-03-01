@@ -1,11 +1,12 @@
 #include <chrono>
 #include <thread>
 
-#include "command_parser.hpp"
-#include "service_handler.hpp"
 #include "spdlog/spdlog.h"
-#include "transport_interface.hpp"
-#include "user_manager.hpp"
+
+#include "server/command_parser.hpp"
+#include "server/service_handler.hpp"
+#include "server/transport_interface.hpp"
+#include "server/user_manager.hpp"
 
 ClientSessionImpl::ClientSessionImpl(std::shared_ptr<SessionTransportInterface> transport, ChatRoom& room, UserManager& user_manager)
     : transport_(std::move(transport)), room_(room), user_manager_(user_manager) {

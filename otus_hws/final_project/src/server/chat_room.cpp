@@ -1,10 +1,10 @@
-#include "chat_room.hpp"
+#include "server/chat_room.hpp"
 
 #include <memory>
 #include <ranges>
 
-#include "network_handler.hpp"
-#include "service_handler.hpp"
+#include "server/network_handler.hpp"
+#include "server/service_handler.hpp"
 
 ChatRoom::ChatRoom(size_t history_depth) : history_depth_(history_depth), simple_history_{history_depth} {
 }

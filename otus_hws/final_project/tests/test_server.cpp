@@ -4,10 +4,10 @@
 #define BOOST_TEST_MODULE ClientSessionTests
 #include <boost/test/included/unit_test.hpp>
 
-#include "chat_room.hpp"
-#include "service_handler.hpp"
-#include "transport_interface.hpp"
-#include "user_manager.hpp"
+#include "server/chat_room.hpp"
+#include "server/service_handler.hpp"
+#include "server/transport_interface.hpp"
+#include "server/user_manager.hpp"
 
 struct MockTransport : public SessionTransportInterface {
     std::vector<chat::ServerMessage> sent_messages;

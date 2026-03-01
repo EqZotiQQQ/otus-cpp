@@ -1,5 +1,5 @@
-#include "client.hpp"
-#include "client_options.hpp"
+#include "client/client.hpp"
+#include "client/client_options.hpp"
 
 int main(int argc, char* argv[]) {
     Options options = parse_options(argc, argv);

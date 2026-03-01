@@ -1,5 +1,5 @@
-#include "server.hpp"
-#include "server_options.hpp"
+#include "server/server.hpp"
+#include "server/server_options.hpp"
 
 #include <spdlog/spdlog.h>
 

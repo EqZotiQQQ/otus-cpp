@@ -1,8 +1,8 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
 
-#include "network_handler.hpp"
-#include "service_handler.hpp"
+#include "server/network_handler.hpp"
+#include "server/service_handler.hpp"
 
 namespace {
 

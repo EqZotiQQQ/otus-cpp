@@ -1,10 +1,10 @@
-#include "server.hpp"
+#include "server/server.hpp"
 
 #include <arpa/inet.h>
 #include <spdlog/spdlog.h>
 
-#include "network_handler.hpp"
-#include "service_handler.hpp"
+#include "server/network_handler.hpp"
+#include "server/service_handler.hpp"
 
 using namespace std::chrono;
 
