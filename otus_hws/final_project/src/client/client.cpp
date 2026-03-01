@@ -157,7 +157,6 @@ void Client::handle_server_message(const chat::ServerMessage& msg) {
     }
 
     if (msg.has_heartbeet()) {
-        spdlog::info("Pong");
         heartbeat_timeout_timer_.cancel();
     }
 
@@ -170,7 +169,6 @@ void Client::send_heartbeat() {
     auto* mut_hb = clinet_msg.mutable_heartbeet();
     mut_hb->set_timestamp(std::chrono::system_clock::now().time_since_epoch().count());
 
-    spdlog::info("Ping");
     write(clinet_msg);
     set_heartbeat_timeout_timer();
 }
