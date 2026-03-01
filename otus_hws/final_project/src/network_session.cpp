@@ -1,12 +1,14 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
-#include <system_error>
 
 #include "network_handler.hpp"
 #include "service_handler.hpp"
 
-constexpr inline std::chrono::seconds HEARTBEAT_TIMEOUT{4};
+namespace {
 
+constexpr inline std::chrono::seconds HEARTBEAT_TIMEOUT{30};
+
+}
 NetworkSession::NetworkSession(boost::asio::io_context& io, tcp::socket socket, ChatRoom& room, UserManager& user_manager)
     : socket_(std::move(socket)),
       connection_uuid_(boost::uuids::random_generator()()),
@@ -76,7 +78,6 @@ void NetworkSession::do_read_body() {
 }
 
 void NetworkSession::update_last_seen() {
-    spdlog::info("update_last_seen");
     set_clinet_silent_timeout_timer();
     last_seen_client_stamp_ns_ = std::chrono::system_clock::now().time_since_epoch().count();
 }

@@ -9,8 +9,12 @@
 
 #include "schema.pb.h"
 
+namespace {
+
 constexpr inline std::chrono::seconds HEARTBEAT_INTERVAL{12};
 constexpr inline std::chrono::seconds HEARTBEAT_TIMEOUT{4};
+
+}  // namespace
 
 Client::Client(boost::asio::io_context& io) : io_(io), socket_(io), heartbeat_timer_{io}, heartbeat_timeout_timer_{io} {
 }
